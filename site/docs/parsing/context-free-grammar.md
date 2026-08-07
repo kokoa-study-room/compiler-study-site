@@ -209,7 +209,7 @@ $b$ 를 세면서 스택을 비워 버렸으므로 $c$ 를 셀 때 쓸 정보가
 - CFG → PDA 변환: 우측 유도의 역을 스택으로 흉내 낸다 (**상향식**, LR의 원리)
 :::
 
-**이 두 변환이 곧 13장의 LL 파서와 14장의 LR 파서다.**
+**이 두 변환이 곧 13장의 LL 파서와 15장의 LR 파서다.**
 파서가 스택을 갖는 이유는 취향이 아니라 이론적 필연이다.
 
 ### 결정적 PDA
@@ -445,7 +445,7 @@ $$
 어느 것을 고를지가 남는다. 문법은 여전히 모호하다.
 
 관례적으로 "`else`를 보면 무조건 shift(가장 가까운 `if`에 붙인다)"로 해결한다.
-[15장](/docs/parsing/lr-parser-implementation)과
+[16장](/docs/parsing/lr-parser-implementation)과
 [YACC 충돌](/docs/yacc/conflicts-and-precedence)에서 다시 다룬다.
 :::
 

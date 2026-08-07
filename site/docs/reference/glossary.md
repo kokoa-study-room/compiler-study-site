@@ -99,17 +99,17 @@ description: 교안에 나온 용어의 한국어·영어 대조와 짧은 정�
 | 고정점 계산 | fixed-point computation | 변화가 없을 때까지 반복 | [12](/docs/parsing/syntax-analysis#123-first-집합) |
 | 재귀 하강 | recursive descent | 넌터미널마다 함수 | [13](/docs/parsing/ll-parsing#131-재귀-하강-파싱) |
 | 예측 파싱 | predictive parsing | 표 구동 LL | [13](/docs/parsing/ll-parsing#132-표-구동-예측-파싱) |
-| 이동 | shift | 토큰을 스택에 밀어 넣기 | [14](/docs/parsing/lr-parsing#141-이동-축약-파싱) |
-| 축약 | reduce | 우변을 좌변으로 바꾸기 | [14](/docs/parsing/lr-parsing#141-이동-축약-파싱) |
+| 이동 | shift | 토큰을 스택에 밀어 넣기 | [14](/docs/parsing/lr-parsing#151-이동-축약-파싱) |
+| 축약 | reduce | 우변을 좌변으로 바꾸기 | [14](/docs/parsing/lr-parsing#151-이동-축약-파싱) |
 | 핸들 | handle | 지금 축약해야 할 부분 | [14](/docs/parsing/lr-parsing#핸들) |
-| LR(0) 항목 | LR(0) item | 우변에 점을 찍은 것 | [14](/docs/parsing/lr-parsing#142-lr0-항목) |
-| 정준 항목 집합 | canonical collection | CLOSURE/GOTO 로 만든 상태 집합 | [14](/docs/parsing/lr-parsing#143-정준-lr0-항목-집합) |
-| 실행 가능한 접두사 | viable prefix | 스택에 쌓일 수 있는 심볼 열 | [14](/docs/parsing/lr-parsing#143-정준-lr0-항목-집합) |
+| LR(0) 항목 | LR(0) item | 우변에 점을 찍은 것 | [14](/docs/parsing/lr-parsing#152-lr0-항목) |
+| 정준 항목 집합 | canonical collection | CLOSURE/GOTO 로 만든 상태 집합 | [14](/docs/parsing/lr-parsing#153-정준-lr0-항목-집합) |
+| 실행 가능한 접두사 | viable prefix | 스택에 쌓일 수 있는 심볼 열 | [14](/docs/parsing/lr-parsing#153-정준-lr0-항목-집합) |
 | 증강 문법 | augmented grammar | $S' \to S$ 를 추가한 문법 | [14](/docs/parsing/lr-parsing#증강-문법) |
-| 충돌 | conflict | 표 한 칸에 액션이 둘 이상 | [14](/docs/parsing/lr-parsing#146-충돌) |
-| dangling else | dangling else | `else` 가 어느 `if` 에 붙는가 | [18](/docs/yacc/conflicts-and-precedence#184-dangling-else) |
-| GLR | generalized LR | 충돌 시 모든 가능성 탐색 | [15](/docs/parsing/lr-parser-implementation#158-glr--충돌을-포기하지-않기) |
-| 기본 축약 | default reduction | 표 압축 기법 (`$default`) | [15](/docs/parsing/lr-parser-implementation#156-표-압축) |
+| 충돌 | conflict | 표 한 칸에 액션이 둘 이상 | [14](/docs/parsing/lr-parsing#156-충돌) |
+| dangling else | dangling else | `else` 가 어느 `if` 에 붙는가 | [18](/docs/yacc/conflicts-and-precedence#204-dangling-else) |
+| GLR | generalized LR | 충돌 시 모든 가능성 탐색 | [15](/docs/parsing/lr-parser-implementation#168-glr--충돌을-포기하지-않기) |
+| 기본 축약 | default reduction | 표 압축 기법 (`$default`) | [15](/docs/parsing/lr-parser-implementation#166-표-압축) |
 | 패닉 모드 | panic mode | 동기화 토큰까지 버리는 오류 복구 | [12](/docs/parsing/syntax-analysis#126-구문-오류-처리) |
 
 ---
@@ -119,13 +119,13 @@ description: 교안에 나온 용어의 한국어·영어 대조와 짧은 정�
 | 한국어 | 영어 | 뜻 | 장 |
 |---|---|---|---|
 | 의미 분석 | semantic analysis | 타입·선언 검사 | [1](/docs/foundations/compiler-overview#-의미-분석-semantic-analysis) |
-| 심볼 테이블 | symbol table | 이름 → 속성 매핑 | [17](/docs/yacc/yacc-grammar-and-actions#174-심볼-테이블) |
+| 심볼 테이블 | symbol table | 이름 → 속성 매핑 | [17](/docs/yacc/yacc-grammar-and-actions#194-심볼-테이블) |
 | 형 변환 | type coercion | 암묵적 타입 변환 | [17](/docs/yacc/yacc-grammar-and-actions#형-변환-노드-삽입) |
 | 중간 표현 | intermediate representation (IR) | 기계 독립 표현 | [1](/docs/foundations/compiler-overview#-중간-코드-생성) |
 | 3-주소 코드 | three-address code | 연산자 1개, 피연산자 최대 3개 | [1](/docs/foundations/compiler-overview#-중간-코드-생성) |
 | 상수 접기 | constant folding | 컴파일 시점 계산 | [1](/docs/foundations/compiler-overview#-코드-최적화) |
 | 단축 평가 | short-circuit evaluation | `&&`, `||` 의 조기 종료 | [통합](/docs/labs/mini-compiler#5-확장-과제) |
-| 백패칭 | backpatching | 점프 대상을 나중에 채우기 | [17](/docs/yacc/yacc-grammar-and-actions#176-중간-코드-생성) |
+| 백패칭 | backpatching | 점프 대상을 나중에 채우기 | [17](/docs/yacc/yacc-grammar-and-actions#196-중간-코드-생성) |
 
 ---
 
@@ -141,8 +141,8 @@ description: 교안에 나온 용어의 한국어·영어 대조와 짧은 정�
 | tree-sitter | 점진적 GLR 파서 (에디터용) | [19](/docs/modern/trends#tree-sitter--glr-기반-점진적-파싱) |
 | Menhir | 검증된 LR(1) 파서 생성기 (OCaml) | [20](/docs/modern/toolchain-map#menhir-ocaml) |
 | LLVM | 컴파일러 백엔드 인프라 | [20](/docs/modern/toolchain-map#llvm) |
-| MLIR | 다층 dialect IR | [19](/docs/modern/trends#194-mlir--여러-층의-ir) |
-| CompCert | 형식 검증된 C 컴파일러 | [19](/docs/modern/trends#196-검증된-컴파일러) |
+| MLIR | 다층 dialect IR | [19](/docs/modern/trends#214-mlir--여러-층의-ir) |
+| CompCert | 형식 검증된 C 컴파일러 | [19](/docs/modern/trends#216-검증된-컴파일러) |
 
 ---
 

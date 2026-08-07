@@ -1,12 +1,12 @@
 ---
 id: yacc-overview
-title: 16. YACC 개요
-sidebar_label: 16. YACC 개요
+title: 18. YACC 개요
+sidebar_label: 18. YACC 개요
 sidebar_position: 1
 description: yacc/bison이란 무엇인가 — 입력 파일의 3부 구조, 생성되는 코드, lex와의 결합, 첫 번째 파서.
 ---
 
-# 16. YACC 개요
+# 18. YACC 개요
 
 4부에서 LR 표를 손으로 만들어 보았다.
 식 문법 하나에 상태가 12개였다. 실제 언어라면 수백 개다.
@@ -16,7 +16,7 @@ description: yacc/bison이란 무엇인가 — 입력 파일의 3부 구조, 생
 
 ---
 
-## 16.1 yacc란 무엇인가
+## 18.1 yacc란 무엇인가
 
 ```mermaid
 flowchart LR
@@ -41,7 +41,7 @@ flowchart LR
 
 ### yacc가 대신해 주는 일
 
-[15장의 파이프라인](/docs/parsing/lr-parser-implementation#157-파서-생성기가-하는-일)
+[16장의 파이프라인](/docs/parsing/lr-parser-implementation#167-파서-생성기가-하는-일)
 전부다.
 
 1. 문법 파일 파싱, 증강 문법 구성
@@ -57,7 +57,7 @@ flowchart LR
 
 ---
 
-## 16.2 yacc 입력 파일의 구조
+## 18.2 yacc 입력 파일의 구조
 
 lex와 마찬가지로 `%%` 로 나뉘는 **세 부분**이다.
 
@@ -90,7 +90,7 @@ int main(void) { return yyparse(); }
 
 ---
 
-## 16.3 선언부
+## 18.3 선언부
 
 네 가지가 들어간다.
 
@@ -112,7 +112,7 @@ void yyerror(const char *s);
 
 ### ② `%union` — 의미 값의 타입
 
-[15장에서 본](/docs/parsing/lr-parser-implementation#153-의미-값-스택)
+[16장에서 본](/docs/parsing/lr-parser-implementation#163-의미-값-스택)
 **값 스택의 원소 타입**을 정의한다.
 
 ```c title="examples/07-yacc-calc/calc.y"
@@ -180,7 +180,7 @@ bison이 오류를 낸다 — 다행이다.
 
 ---
 
-## 16.4 규칙부
+## 18.4 규칙부
 
 ```
 넌터미널
@@ -256,7 +256,7 @@ LR은 **좌재귀를 써야 한다**. 우재귀를 쓰면 항목 $n$ 개짜리 �
 
 ---
 
-## 16.5 액션과 `$` 기호
+## 18.5 액션과 `$` 기호
 
 | 기호 | 의미 |
 |---|---|
@@ -265,7 +265,7 @@ LR은 **좌재귀를 써야 한다**. 우재귀를 쓰면 항목 $n$ 개짜리 �
 | `$<멤버>n` | 타입을 명시적으로 지정 |
 | `@$`, `@1` | 위치 정보 (`%locations` 필요) |
 
-[15장에서 본 대로](/docs/parsing/lr-parser-implementation#yacc의--1-2-의-정체)
+[16장에서 본 대로](/docs/parsing/lr-parser-implementation#yacc의--1-2-의-정체)
 이들은 전부 **값 스택의 인덱스**다.
 
 ### 기본 액션
@@ -313,7 +313,7 @@ stmt : IF '(' expr ')' @1 stmt ;
 
 ---
 
-## 16.6 lex와 결합하기
+## 18.6 lex와 결합하기
 
 [8장에서 예고한](/docs/lex/lex-input-and-parsing#85-파서와-결합하기)
 세 가지 계약을 실제 코드로 보자.
@@ -374,7 +374,7 @@ calc: calc.tab.c lex.yy.c
 
 ---
 
-## 16.7 첫 번째 파서 — 계산기
+## 18.7 첫 번째 파서 — 계산기
 
 `examples/07-yacc-calc` 를 돌려 보자.
 
@@ -408,7 +408,7 @@ expr : expr '+' expr
      | ...
 ```
 
-[14장에서](/docs/parsing/lr-parsing) 손으로 $E/T/F$ 로 계층화했던 것과 정반대다.
+[15장에서](/docs/parsing/lr-parsing) 손으로 $E/T/F$ 로 계층화했던 것과 정반대다.
 이 문법은 **모호하다**. `id + id * id` 에 파스 트리가 둘 이상이다.
 
 그런데도 bison은 **충돌 0개**를 보고한다.
@@ -434,7 +434,7 @@ bison -d -v -o calc.tab.c calc.y     # 아무 경고도 안 나온다
 
 ---
 
-## 16.8 생성된 코드 들여다보기
+## 18.8 생성된 코드 들여다보기
 
 ```bash
 bison -d -v -o calc.tab.c calc.y
@@ -451,7 +451,7 @@ grep -n "yypact\|yytable\|yycheck\|yydefact" calc.tab.c | head
 | `yypgoto`, `yydefgoto` | GOTO 표 |
 | `yyr1`, `yyr2` | 규칙의 좌변과 우변 길이 |
 
-[15장 표 압축](/docs/parsing/lr-parser-implementation#156-표-압축)에서 본 그대로다.
+[16장 표 압축](/docs/parsing/lr-parser-implementation#166-표-압축)에서 본 그대로다.
 
 ### `.output` 읽기
 
@@ -474,7 +474,7 @@ state 22
 - `NUM shift, and go to state 4` — ACTION 표의 한 칸
 - `expr go to state 30` — GOTO 표의 한 칸
 
-[14장에서 손으로 만든 $I_0 \sim I_{11}$](/docs/parsing/lr-parsing#정준-집합-만들기)과
+[15장에서 손으로 만든 $I_0 \sim I_{11}$](/docs/parsing/lr-parsing#정준-집합-만들기)과
 같은 것을 bison이 계산해 적어 놓은 것이다.
 
 :::tip[`.output` 은 디버깅의 출발점이다]
@@ -487,7 +487,7 @@ state 22
 ## 요약
 
 - **yacc**는 문법으로부터 LALR(1) 파서 C 코드를 생성한다.
-  15장의 8단계 파이프라인 전부를 대신 해 준다.
+  16장의 8단계 파이프라인 전부를 대신 해 준다.
 - 입력 파일은 **선언부 `%%` 규칙부 `%%` 사용자 코드부**.
 - `%union` 이 **값 스택의 원소 타입**을 정한다.
   `%token <멤버>` / `%type <멤버>` 로 각 심볼의 타입을 지정한다.

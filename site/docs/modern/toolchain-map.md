@@ -1,12 +1,12 @@
 ---
 id: toolchain-map
-title: 20. 도구 지형도
-sidebar_label: 20. 도구 지형도
+title: 22. 도구 지형도
+sidebar_label: 22. 도구 지형도
 sidebar_position: 2
 description: lex/yacc 바깥의 선택지 — re2c, RE-flex, ANTLR, tree-sitter, 파서 컴비네이터, LLVM. 무엇을 언제 쓰는가.
 ---
 
-# 20. 도구 지형도
+# 22. 도구 지형도
 
 이 교안은 lex와 yacc로 배웠다.
 **이론이 코드가 되는 과정이 가장 잘 드러나기 때문**이다.
@@ -18,7 +18,7 @@ description: lex/yacc 바깥의 선택지 — re2c, RE-flex, ANTLR, tree-sitter,
 
 ---
 
-## 20.1 한눈에 보기
+## 22.1 한눈에 보기
 
 ```mermaid
 flowchart TB
@@ -47,7 +47,7 @@ flowchart TB
 
 ---
 
-## 20.2 어휘 분석기 생성기
+## 22.2 어휘 분석기 생성기
 
 ### flex
 
@@ -106,7 +106,7 @@ Python식 블록 구조를, 도구가 내장 기능으로 지원한다.
 
 ---
 
-## 20.3 파서 생성기
+## 22.3 파서 생성기
 
 ### bison
 
@@ -122,7 +122,7 @@ Python식 블록 구조를, 도구가 내장 기능으로 지원한다.
 **검증된 LR(1) 파서 생성기**다. Coq 증명을 함께 생성할 수 있다.
 
 CompCert가 파서에 이것을 쓴다 —
-[19장에서 언급한](/docs/modern/trends#196-검증된-컴파일러)
+[21장에서 언급한](/docs/modern/trends#216-검증된-컴파일러)
 "파서는 CompCert의 검증 대상이 아니다"의 이유가 여기 있다.
 Menhir가 이미 검증된 파서를 만들어 주기 때문이다.
 
@@ -136,7 +136,7 @@ Menhir가 이미 검증된 파서를 만들어 주기 때문이다.
 
 | | |
 |---|---|
-| 알고리즘 | [ALL(\*)](/docs/modern/trends#193-all--런타임으로-미룬-문법-분석) |
+| 알고리즘 | [ALL(\*)](/docs/modern/trends#213-all--런타임으로-미룬-문법-분석) |
 | 타깃 | Java, C#, Python, JavaScript, Go, C++, Swift, PHP, Dart |
 | 장점 | **좌재귀 직접 지원**, 생성 코드가 읽힌다, 자동 visitor/listener, 도구가 좋다 |
 | 단점 | 런타임 라이브러리 필요, bison보다 느리다, 모호성을 조용히 해소 |
@@ -212,7 +212,7 @@ GCC, Clang, Rust, Go, TypeScript, C# 모두 그렇다.
 
 ---
 
-## 20.4 선택 가이드
+## 22.4 선택 가이드
 
 ```mermaid
 flowchart TB
@@ -245,7 +245,7 @@ flowchart TB
 
 ---
 
-## 20.5 백엔드
+## 22.5 백엔드
 
 프론트엔드를 만들었다면 그다음은 무엇인가.
 
@@ -272,7 +272,7 @@ LLVM 공식 튜토리얼 *Kaleidoscope* 가 좋은 출발점이다.
 
 ### MLIR
 
-[19장에서 다룬](/docs/modern/trends#194-mlir--여러-층의-ir) 다층 IR.
+[21장에서 다룬](/docs/modern/trends#214-mlir--여러-층의-ir) 다층 IR.
 도메인 특화 최적화가 필요할 때 — 텐서 연산, 하드웨어 가속기 —
 LLVM IR로 내려가기 전에 할 일이 있을 때 쓴다.
 
@@ -293,7 +293,7 @@ Python, Ruby, Lua, JVM이 그렇게 한다.
 
 ---
 
-## 20.6 이 교안 이후
+## 22.6 이 교안 이후
 
 ### 바로 해 볼 수 있는 것
 

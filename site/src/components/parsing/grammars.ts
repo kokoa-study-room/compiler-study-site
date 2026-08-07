@@ -3,7 +3,7 @@
  *
  * 한 곳에 모아 두는 이유는 여러 장에서 **같은 문법**을 쓰기 위해서다.
  * 12장에서 FIRST/FOLLOW 를 구한 문법으로 13장에서 LL(1) 표를 만들고,
- * 14장에서 같은 언어의 LR 표를 만들어 비교한다.
+ * 15장에서 같은 언어의 LR 표를 만들어 비교한다.
  */
 
 import type {Grammar, LLTable, LRTable} from './types';
@@ -52,7 +52,7 @@ export const exprGrammar: Grammar = {
 
 /**
  * SLR(1) 파싱 표. Dragon Book 그림 4.37 과 같은 표다.
- * 이 표는 14장에서 항목 집합 C0~C11 로부터 손으로 만들어 낸다.
+ * 이 표는 15장에서 항목 집합 C0~C11 로부터 손으로 만들어 낸다.
  */
 export const exprSLRTable: LRTable = {
   action: {

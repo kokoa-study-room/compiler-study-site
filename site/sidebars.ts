@@ -82,8 +82,10 @@ const sidebars: SidebarsConfig = {
         'parsing/grammar-hierarchy',
         'parsing/syntax-analysis',
         'parsing/ll-parsing',
+        'parsing/operator-precedence',
         'parsing/lr-parsing',
         'parsing/lr-parser-implementation',
+        'parsing/syntax-directed-translation',
       ],
     },
     {

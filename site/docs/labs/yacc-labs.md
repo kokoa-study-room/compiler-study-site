@@ -118,7 +118,7 @@ static Node *parse_term(void)
 **디렉터리** `examples/06-lr-table-driven`
 **관련 장** [15. LR 파서의 구현](/docs/parsing/lr-parser-implementation)
 
-[14장에서 손으로 만든 SLR(1) 표](/docs/parsing/lr-parsing#완성된-표)를
+[15장에서 손으로 만든 SLR(1) 표](/docs/parsing/lr-parsing#완성된-표)를
 그대로 C 배열로 옮긴 파서다.
 
 ```bash
@@ -219,7 +219,7 @@ bison -d -v -o calc.tab.c calc.y     # 아무 경고도 안 나온다
 ```
 
 `%left`, `%right` 선언이 모든 shift/reduce 충돌을 해소했기 때문이다.
-14장에서 손으로 $E/T/F$ 계층을 만든 것과 같은 효과를, 5줄로 얻는다.
+15장에서 손으로 $E/T/F$ 계층을 만든 것과 같은 효과를, 5줄로 얻는다.
 
 ### 확인할 것 ② — 우선순위 선언의 효과
 
@@ -275,7 +275,7 @@ state 22
 ```
 
 `14 expr: expr '^' . expr` 은 **LR(0) 항목** 그 자체다.
-14장에서 손으로 만든 것을 bison이 계산해 적어 놓았다.
+15장에서 손으로 만든 것을 bison이 계산해 적어 놓았다.
 
 ### 과제
 

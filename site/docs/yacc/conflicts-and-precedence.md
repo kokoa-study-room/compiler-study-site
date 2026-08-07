@@ -1,12 +1,12 @@
 ---
 id: conflicts-and-precedence
-title: 18. 충돌과 우선순위
-sidebar_label: 18. 충돌과 우선순위
+title: 20. 충돌과 우선순위
+sidebar_label: 20. 충돌과 우선순위
 sidebar_position: 3
 description: shift/reduce와 reduce/reduce 충돌을 읽고 고치는 법, %left/%right/%prec, error 토큰 오류 복구.
 ---
 
-# 18. 충돌과 우선순위
+# 20. 충돌과 우선순위
 
 ```
 calc.y: conflicts: 3 shift/reduce, 1 reduce/reduce
@@ -27,9 +27,9 @@ bison은 충돌이 있어도 **파서를 만들어 준다**. 기본 규칙으로
 
 ---
 
-## 18.1 충돌이란
+## 20.1 충돌이란
 
-[14장에서 정의한](/docs/parsing/lr-parsing#146-충돌) 대로,
+[15장에서 정의한](/docs/parsing/lr-parsing#156-충돌) 대로,
 ACTION 표의 **한 칸에 액션이 둘 이상** 들어가는 것이다.
 
 | 충돌 | 뜻 | 기본 해결 | 심각도 |
@@ -39,7 +39,7 @@ ACTION 표의 **한 칸에 액션이 둘 이상** 들어가는 것이다.
 
 ---
 
-## 18.2 충돌 읽기
+## 20.2 충돌 읽기
 
 ### 1단계 — `.output` 을 뽑는다
 
@@ -113,7 +113,7 @@ Homebrew로 bison 3.8+ 을 설치하면 쓸 수 있다.
 
 ---
 
-## 18.3 우선순위와 결합성 선언
+## 20.3 우선순위와 결합성 선언
 
 shift/reduce 충돌의 대부분은 **연산자 우선순위** 때문이고,
 선언 몇 줄로 해소된다.
@@ -198,7 +198,7 @@ Python은 이를 다르게 해결했다 — `a < b < c` 를 연쇄 비교로 재
 
 ---
 
-## 18.4 dangling else
+## 20.4 dangling else
 
 가장 유명한 shift/reduce 충돌이다. 세 가지 대응이 있다.
 
@@ -269,7 +269,7 @@ Go와 Rust가 중괄호를 필수로 만든 이유 중 하나다.
 
 ---
 
-## 18.5 reduce/reduce 충돌
+## 20.5 reduce/reduce 충돌
 
 **거의 항상 문법의 진짜 버그다.** shift/reduce와 달리 그냥 넘기면 안 된다.
 
@@ -294,7 +294,7 @@ expr : ID    /* lvalue 인지 여부는 의미 분석에서 판정 */
 
 ### 전형적 원인 ② LALR 병합의 부작용
 
-[14장에서 설명한](/docs/parsing/lr-parsing#lalr1) 그대로다.
+[15장에서 설명한](/docs/parsing/lr-parsing#lalr1) 그대로다.
 LR(1)에서는 충돌이 없는데 LALR 병합 후에 생긴다.
 
 **해결:** bison에 완전한 LR(1)을 요청한다.
@@ -337,7 +337,7 @@ Go가 `var x int` 처럼 키워드로 선언을 시작하게 만든 이유다.
 
 ---
 
-## 18.6 충돌 진단 체크리스트
+## 20.6 충돌 진단 체크리스트
 
 ```mermaid
 flowchart TB
@@ -364,7 +364,7 @@ flowchart TB
 
 ---
 
-## 18.7 오류 복구
+## 20.7 오류 복구
 
 문법이 맞아도 입력이 틀릴 수 있다.
 좋은 컴파일러는 **첫 오류에서 멈추지 않는다**.
@@ -469,7 +469,7 @@ bison은 오류 복구 후 **토큰 3개를 성공적으로 이동할 때까지*
 syntax error, unexpected '*', expecting NUM or ID or '('
 ```
 
-[15장에서 본](/docs/parsing/lr-parser-implementation#기대-토큰-목록-얻기)
+[16장에서 본](/docs/parsing/lr-parser-implementation#기대-토큰-목록-얻기)
 "표의 행에서 기대 토큰 뽑기"를 bison이 해 주는 것이다.
 
 **더 나은 메시지를 원한다면 오류 생성 규칙을 쓴다.**

@@ -266,7 +266,7 @@ LR이 더 많은 문법을 받는다. **좌재귀**가 대표적인 차이다.
 **② LALR(1)은 LR(1)보다 약하다**
 LALR은 LR(1) 상태를 병합해 표 크기를 줄인 것이다.
 그 대가로 원래 없던 **reduce/reduce 충돌**이 생길 수 있다.
-[14장](/docs/parsing/lr-parsing)에서 실제 예를 본다.
+[15장](/docs/parsing/lr-parsing)에서 실제 예를 본다.
 
 :::tip[왜 LALR(1)이 사실상의 표준이 되었나]
 1965년 Knuth가 LR(1)을 발표했을 때, 실제 언어의 LR(1) 표는

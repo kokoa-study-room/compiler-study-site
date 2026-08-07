@@ -86,6 +86,23 @@ const sidebars: SidebarsConfig = {
         'parsing/lr-parser-implementation',
       ],
     },
+    {
+      type: 'category',
+      label: '5부 · YACC',
+      collapsed: false,
+      link: {
+        type: 'generated-index',
+        title: '5부 · YACC',
+        description:
+          '4부의 LALR(1) 이론을 자동화한 도구. yacc/bison으로 파서를 생성하고, 충돌 보고서를 읽고, lex와 결합해 하나의 컴파일러 프론트엔드를 만든다.',
+        slug: '/category/yacc',
+      },
+      items: [
+        'yacc/yacc-overview',
+        'yacc/yacc-grammar-and-actions',
+        'yacc/conflicts-and-precedence',
+      ],
+    },
   ],
 
   labSidebar: [
@@ -101,7 +118,7 @@ const sidebars: SidebarsConfig = {
           'flex와 bison을 직접 돌려 보는 과제 모음. 모든 예제는 저장소의 examples/ 아래에 실행 가능한 형태로 들어 있다.',
         slug: '/category/labs',
       },
-      items: ['labs/lex-labs'],
+      items: ['labs/lex-labs', 'labs/yacc-labs', 'labs/mini-compiler'],
     },
   ],
 };

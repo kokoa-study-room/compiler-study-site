@@ -1,0 +1,8 @@
+int a, b, c;
+a = 1;
+if (a > 0)
+    if (a > 10)
+        b = 1;
+    else
+        b = 2;
+c = b;

@@ -1,0 +1,28 @@
+// 미니 언어 예제 — 팩토리얼과 평균
+int n, i, fact;
+float sum, avg;
+
+n = 5;
+i = 1;
+fact = 1;
+
+while (i <= n) {
+    fact = fact * i;
+    i = i + 1;
+}
+print fact;
+
+/* 정수를 float 에 대입하면 조용히 확대된다 */
+sum = 0;
+i = 1;
+while (i <= n) {
+    sum = sum + i;
+    i = i + 1;
+}
+avg = sum / n;
+print avg;
+
+if (avg > 2 && fact > 100)
+    print 1;
+else
+    print 0;

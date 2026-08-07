@@ -1,0 +1,525 @@
+---
+id: yacc-overview
+title: 16. YACC 개요
+sidebar_label: 16. YACC 개요
+sidebar_position: 1
+description: yacc/bison이란 무엇인가 — 입력 파일의 3부 구조, 생성되는 코드, lex와의 결합, 첫 번째 파서.
+---
+
+# 16. YACC 개요
+
+4부에서 LR 표를 손으로 만들어 보았다.
+식 문법 하나에 상태가 12개였다. 실제 언어라면 수백 개다.
+
+**yacc**는 그 표를 자동으로 만들어 준다.
+문법과 액션을 적어 주면 파서 C 코드를 뽑아 준다.
+
+---
+
+## 16.1 yacc란 무엇인가
+
+```mermaid
+flowchart LR
+    A["parser.y<br/>(문법 + 액션)"] --> B[["yacc / bison"]]
+    B --> C["y.tab.c<br/>(LALR 표 + yyparse)"]
+    B --> D["y.tab.h<br/>(토큰 상수)"]
+    B --> E["y.output<br/>(상태 보고서)"]
+    C --> F[["C 컴파일러"]]
+    D --> G["scanner.l"]
+    F --> H["실행 파일"]
+```
+
+### 계보
+
+| 이름 | 유래 |
+|---|---|
+| **yacc** | *Yet Another Compiler Compiler*. 1975년 Bell Labs의 Stephen C. Johnson |
+| **bison** | GNU 구현. yacc의 상위 호환. GLR, LR(1) 등 확장 |
+| **byacc** | Berkeley yacc. BSD 라이선스 구현 |
+
+이 교안에서 "yacc"는 도구 일반을, "bison"은 실제 구현을 가리킨다.
+
+### yacc가 대신해 주는 일
+
+[15장의 파이프라인](/docs/parsing/lr-parser-implementation#157-파서-생성기가-하는-일)
+전부다.
+
+1. 문법 파일 파싱, 증강 문법 구성
+2. FIRST/FOLLOW 계산
+3. 정준 LR(0) 항목 집합 구성
+4. LALR(1) lookahead 계산과 상태 병합
+5. ACTION/GOTO 표 채우기
+6. 우선순위 선언으로 충돌 해결, 남은 충돌 보고
+7. 표 압축
+8. `yyparse()` 와 액션 코드 출력
+
+우리는 **문법과 액션**만 쓰면 된다.
+
+---
+
+## 16.2 yacc 입력 파일의 구조
+
+lex와 마찬가지로 `%%` 로 나뉘는 **세 부분**이다.
+
+```
+선언부 (declarations)
+%%
+규칙부 (rules)
+%%
+사용자 코드부 (user code)
+```
+
+### 가장 작은 완전한 예
+
+```c title="minimal.y"
+%{
+#include <stdio.h>
+int yylex(void);
+void yyerror(const char *s) { fprintf(stderr, "%s\n", s); }
+%}
+
+%token NUM
+
+%%
+expr : NUM            { printf("숫자 하나: %d\n", $1); }
+     ;
+%%
+
+int main(void) { return yyparse(); }
+```
+
+---
+
+## 16.3 선언부
+
+네 가지가 들어간다.
+
+### ① `%{ ... %}` C 블록
+
+생성된 파일 위쪽에 그대로 복사된다. `#include`, 전역 변수, 함수 선언.
+
+```c
+%{
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "mini.h"
+
+int  yylex(void);
+void yyerror(const char *s);
+%}
+```
+
+### ② `%union` — 의미 값의 타입
+
+[15장에서 본](/docs/parsing/lr-parser-implementation#153-의미-값-스택)
+**값 스택의 원소 타입**을 정의한다.
+
+```c title="examples/07-yacc-calc/calc.y"
+%union {
+    double  num;
+    char   *str;
+}
+```
+
+이것이 생성 코드의 `YYSTYPE` 이 되고, `yylval` 의 타입이 된다.
+
+:::caution[`%union` 을 쓰지 않으면 `int` 다]
+선언하지 않으면 `YYSTYPE` 이 `int` 로 정의된다.
+포인터를 넣으려다 잘리는 사고가 난다.
+:::
+
+### ③ 토큰 선언
+
+```c
+%token <num> NUM        /* 값이 num 멤버에 담긴다 */
+%token <str> ID
+%token       EOL        /* 값이 없는 토큰 */
+%type  <num> expr       /* 넌터미널의 값 타입 */
+```
+
+| 선언 | 대상 |
+|---|---|
+| `%token` | 터미널 (스캐너가 만드는 것) |
+| `%type` | 넌터미널 (규칙이 만드는 것) |
+| `<멤버>` | `%union` 의 어느 멤버를 쓰는지 |
+
+:::danger[`%type` 을 빼먹으면 조용히 깨진다]
+넌터미널에 `%type` 을 선언하지 않으면 `$$` 의 타입을 알 수 없어
+bison이 오류를 낸다 — 다행이다.
+
+하지만 **잘못된 멤버**를 지정하면 아무 경고 없이
+공용체의 다른 멤버를 읽어 쓰레기 값이 나온다.
+`%union` 을 쓸 때 가장 흔한 버그다.
+:::
+
+### ④ 우선순위와 결합성
+
+```c
+%right '='
+%left  '+' '-'
+%left  '*' '/' '%'
+%right UMINUS
+%right '^'
+```
+
+**아래로 갈수록 우선순위가 높다.**
+[다음 장](/docs/yacc/conflicts-and-precedence)에서 자세히 다룬다.
+
+### 그 밖의 유용한 선언
+
+| 선언 | 하는 일 |
+|---|---|
+| `%start 심볼` | 시작 심볼 지정 (기본값은 첫 규칙의 좌변) |
+| `%expect N` | "shift/reduce 충돌 N개는 알고 있다" |
+| `%expect-rr N` | reduce/reduce 충돌에 대해 같은 것 |
+| `%locations` | `@$`, `@1` 위치 추적 활성화 |
+| `%glr-parser` | GLR 파서 생성 |
+| `%define parse.error verbose` | 상세한 오류 메시지 (bison 3+) |
+| `%error-verbose` | 위와 같음 (bison 2.x 표기, 3.x에서 deprecated) |
+
+---
+
+## 16.4 규칙부
+
+```
+넌터미널
+    : 대안1   { 액션1 }
+    | 대안2   { 액션2 }
+    ;
+```
+
+BNF를 그대로 옮긴 모양이다.
+
+```c title="examples/07-yacc-calc/calc.y (발췌)"
+expr
+    : NUM                   { $$ = $1; }
+    | expr '+' expr         { $$ = $1 + $3; }
+    | expr '-' expr         { $$ = $1 - $3; }
+    | expr '*' expr         { $$ = $1 * $3; }
+    | '-' expr %prec UMINUS { $$ = -$2; }
+    | '(' expr ')'          { $$ = $2; }
+    ;
+```
+
+### 문자 하나짜리 토큰
+
+`'+'`, `'('` 처럼 작은따옴표로 감싸면 **그 문자의 ASCII 코드**가 토큰 코드다.
+`%token` 선언이 필요 없다.
+
+스캐너에서는 그냥 그 문자를 반환하면 된다.
+
+```c
+[-+*/%^()=]     { return yytext[0]; }
+```
+
+:::info[토큰 코드가 258부터 시작하는 이유]
+0~255는 문자 하나짜리 토큰을 위해 비워 둔다.
+256, 257은 bison이 내부적으로 쓴다 (`$end`, `error`).
+`%token` 으로 선언한 토큰은 **258번부터** 배정된다.
+:::
+
+### ε 생성 규칙
+
+빈 우변으로 쓴다. 주석으로 표시해 두는 것이 관례다.
+
+```c
+opt_else
+    : /* 없음 */        { $$ = NULL; }
+    | KW_ELSE stmt      { $$ = $2; }
+    ;
+```
+
+### 반복
+
+LR은 **좌재귀를 선호한다**.
+
+```c
+/* ✅ 좌재귀 — 스택이 자라지 않는다 */
+stmt_list : /* 없음 */          { $$ = NULL; }
+          | stmt_list stmt      { $$ = node_seq($1, $2); }
+          ;
+
+/* ⚠️ 우재귀 — 리스트 전체가 스택에 쌓인 뒤에야 축약된다 */
+stmt_list : /* 없음 */
+          | stmt stmt_list
+          ;
+```
+
+:::tip[LL과 정반대다]
+[13장](/docs/parsing/ll-parsing)에서 LL은 좌재귀를 못 쓴다고 했다.
+LR은 **좌재귀를 써야 한다**. 우재귀를 쓰면 항목 $n$ 개짜리 리스트가
+전부 스택에 쌓인 뒤에야 축약이 시작되어 스택이 $O(n)$ 으로 커진다.
+
+같은 문법이라도 어느 파서를 쓰느냐에 따라 권장 형태가 정반대다.
+:::
+
+---
+
+## 16.5 액션과 `$` 기호
+
+| 기호 | 의미 |
+|---|---|
+| `$$` | 이 규칙의 결과값 (좌변의 값) |
+| `$1`, `$2`, … | 우변의 $n$번째 심볼의 값 |
+| `$<멤버>n` | 타입을 명시적으로 지정 |
+| `@$`, `@1` | 위치 정보 (`%locations` 필요) |
+
+[15장에서 본 대로](/docs/parsing/lr-parser-implementation#yacc의--1-2-의-정체)
+이들은 전부 **값 스택의 인덱스**다.
+
+### 기본 액션
+
+액션을 생략하면 `{ $$ = $1; }` 이 자동으로 들어간다.
+
+```c
+block : '{' stmt_list '}'   { $$ = $2; }    /* 명시 필요 */
+      ;
+stmt  : block                               /* $$ = $1 이 자동 */
+      ;
+```
+
+:::caution[기본 액션이 틀릴 때가 있다]
+`block : '{' stmt_list '}'` 에서 기본 액션은 `$$ = $1` 즉 `'{'` 의 값이다.
+원하는 것은 `$2` 이므로 반드시 명시해야 한다.
+
+우변의 첫 심볼이 원하는 값이 아닌 모든 규칙에서 같은 문제가 생긴다.
+:::
+
+### 중간 액션
+
+우변 중간에도 액션을 쓸 수 있다.
+
+```c
+stmt : IF '(' expr ')' { /* 여기서 코드를 뱉는다 */ } stmt
+     ;
+```
+
+:::danger[중간 액션은 규칙 번호를 바꾸고 충돌을 만든다]
+bison은 중간 액션을 **익명 넌터미널 하나**로 바꾼다.
+
+```c
+stmt : IF '(' expr ')' @1 stmt ;
+@1   : /* 빈 규칙 */  { ... } ;
+```
+
+그 결과
+1. 뒤따르는 `$n` 의 번호가 하나씩 밀린다 (위에서 `stmt` 는 `$6`)
+2. **없던 충돌이 생길 수 있다** — 빈 규칙 축약 시점을 결정해야 하므로
+
+가능하면 AST를 만들고 나중에 순회하는 편이 안전하다.
+`08-mini-compiler` 가 그렇게 한다.
+:::
+
+---
+
+## 16.6 lex와 결합하기
+
+[8장에서 예고한](/docs/lex/lex-input-and-parsing#85-파서와-결합하기)
+세 가지 계약을 실제 코드로 보자.
+
+### 스캐너 쪽
+
+```c title="examples/07-yacc-calc/calc.l"
+%{
+#include "calc.tab.h"     /* ① 토큰 코드 */
+%}
+
+%%
+{number}    { yylval.num = atof(yytext);   return NUM; }   /* ② 의미 값 */
+{id}        { yylval.str = strdup(yytext); return ID;  }
+"\n"        { return EOL; }
+[ \t\r]+    { /* 버린다 */ }
+[-+*/%^()=] { return yytext[0]; }
+%%
+                                                            /* ③ EOF → 0 */
+```
+
+### 파서 쪽
+
+```c
+%union { double num; char *str; }
+%token <num> NUM
+%token <str> ID
+```
+
+`bison -d` 가 `calc.tab.h` 에 다음을 써 준다.
+
+```c
+#define NUM 258
+#define ID  259
+#define EOL 260
+
+typedef union { double num; char *str; } YYSTYPE;
+extern YYSTYPE yylval;
+```
+
+### 빌드 순서
+
+**`calc.tab.h` 가 먼저 있어야 `calc.l` 이 컴파일된다.**
+
+```make title="examples/07-yacc-calc/Makefile"
+calc.tab.c calc.tab.h: calc.y
+	bison -d -v -o calc.tab.c calc.y
+
+lex.yy.c: calc.l calc.tab.h        # ← 의존 관계가 핵심
+	flex -o $@ calc.l
+
+calc: calc.tab.c lex.yy.c
+	cc -o $@ calc.tab.c lex.yy.c -lm
+```
+
+의존 관계를 빼먹으면 병렬 빌드(`make -j`)에서 간헐적으로
+`calc.tab.h: No such file or directory` 가 난다. 재현이 어려운 버그다.
+
+---
+
+## 16.7 첫 번째 파서 — 계산기
+
+`examples/07-yacc-calc` 를 돌려 보자.
+
+```bash
+cd examples/07-yacc-calc
+make && make test
+./calc < tests/basic.in
+```
+
+```
+  x = 3
+  y = 4
+  = 13
+  = 14
+  = 512
+  = -4
+  = -6
+  = 1
+  = 3.5
+  x = 13
+  = 13
+----
+오류 없음
+```
+
+### 문법이 모호하다는 데 주목
+
+```c
+expr : expr '+' expr
+     | expr '*' expr
+     | ...
+```
+
+[14장에서](/docs/parsing/lr-parsing) 손으로 $E/T/F$ 로 계층화했던 것과 정반대다.
+이 문법은 **모호하다**. `id + id * id` 에 파스 트리가 둘 이상이다.
+
+그런데도 bison은 **충돌 0개**를 보고한다.
+
+```bash
+bison -d -v -o calc.tab.c calc.y     # 아무 경고도 안 나온다
+```
+
+`%left`, `%right` 선언이 모든 shift/reduce 충돌을 해소했기 때문이다.
+
+:::tip[실무에서는 이쪽이 더 흔하다]
+| | 계층화 문법 ($E/T/F$) | 모호 문법 + 우선순위 |
+|---|---|---|
+| 문법 길이 | 길다 | 짧다 |
+| 우선순위 추가 | 넌터미널을 하나 더 | 한 줄 추가 |
+| 파스 트리 | 깊다 ($E \to T \to F$) | 얕다 |
+| 축약 횟수 | 많다 | 적다 |
+| 의도의 명확성 | 문법에 새겨짐 | 선언에 분리됨 |
+
+연산자가 10단계쯤 되는 실제 언어에서 계층화 문법은
+넌터미널이 10개 필요하다. 대부분의 언어 명세가 후자를 택한다.
+:::
+
+---
+
+## 16.8 생성된 코드 들여다보기
+
+```bash
+bison -d -v -o calc.tab.c calc.y
+ls -la calc.tab.c calc.tab.h calc.output
+grep -n "yypact\|yytable\|yycheck\|yydefact" calc.tab.c | head
+```
+
+| 배열 | 역할 |
+|---|---|
+| `yypact` | 상태별 행 오프셋 |
+| `yytable` | 압축된 액션 값 |
+| `yycheck` | 이 칸이 정말 이 행의 것인지 검증 |
+| `yydefact` | 기본 축약 |
+| `yypgoto`, `yydefgoto` | GOTO 표 |
+| `yyr1`, `yyr2` | 규칙의 좌변과 우변 길이 |
+
+[15장 표 압축](/docs/parsing/lr-parser-implementation#156-표-압축)에서 본 그대로다.
+
+### `.output` 읽기
+
+`bison -v` 가 만드는 `calc.output` 이 가장 유용하다.
+
+```
+state 22
+
+   14 expr: expr '^' . expr
+
+    NUM  shift, and go to state 4
+    ID   shift, and go to state 13
+    '-'  shift, and go to state 7
+    '('  shift, and go to state 8
+
+    expr  go to state 30
+```
+
+- `14 expr: expr '^' . expr` — **LR(0) 항목** 그 자체다. 점의 위치까지 그대로다
+- `NUM shift, and go to state 4` — ACTION 표의 한 칸
+- `expr go to state 30` — GOTO 표의 한 칸
+
+[14장에서 손으로 만든 $I_0 \sim I_{11}$](/docs/parsing/lr-parsing#정준-집합-만들기)과
+같은 것을 bison이 계산해 적어 놓은 것이다.
+
+:::tip[`.output` 은 디버깅의 출발점이다]
+충돌이 났을 때 가장 먼저 볼 파일이다.
+어느 상태에서, 어떤 항목들 사이에서, 어떤 토큰에 대해 났는지 전부 적혀 있다.
+:::
+
+---
+
+## 요약
+
+- **yacc**는 문법으로부터 LALR(1) 파서 C 코드를 생성한다.
+  15장의 8단계 파이프라인 전부를 대신 해 준다.
+- 입력 파일은 **선언부 `%%` 규칙부 `%%` 사용자 코드부**.
+- `%union` 이 **값 스택의 원소 타입**을 정한다.
+  `%token <멤버>` / `%type <멤버>` 로 각 심볼의 타입을 지정한다.
+  **`%type` 을 잘못 쓰면 조용히 깨진다.**
+- **문자 하나짜리 토큰**은 `'+'` 처럼 쓰고, 스캐너는 그 문자를 반환한다.
+  `%token` 으로 선언한 토큰은 258번부터 배정된다.
+- **LR은 좌재귀를 선호한다.** LL과 정반대다.
+  우재귀 리스트는 스택을 $O(n)$ 으로 키운다.
+- **기본 액션은 `$$ = $1`.** `'{' list '}'` 처럼 첫 심볼이
+  원하는 값이 아니면 반드시 명시한다.
+- **중간 액션**은 익명 넌터미널이 되어 `$n` 번호를 밀고 충돌을 만들 수 있다.
+- lex와의 계약: **토큰 코드**(`calc.tab.h`), **의미 값**(`yylval`), **EOF → 0**.
+  Makefile에서 **`.tab.h` → `.l`** 의존 관계를 반드시 적는다.
+- **모호한 문법 + 우선순위 선언**이 실무의 표준적 접근이다.
+- `bison -v` 의 `.output` 에 **모든 상태의 LR(0) 항목**이 그대로 적혀 있다.
+
+## 확인 문제
+
+1. `%union` 을 선언하지 않고 `$$ = strdup(yytext)` 를 쓰면
+   어떤 일이 벌어지는가?
+2. 다음 규칙의 기본 액션이 왜 틀렸는지 설명하고 고쳐라.
+   ```c
+   paren_expr : '(' expr ')' ;
+   ```
+3. `%token FOO` 로 선언한 토큰의 코드는 몇 번인가? 왜 그 번호부터인가?
+4. 좌재귀 리스트와 우재귀 리스트로 항목 1000개를 파싱할 때
+   스택 깊이가 어떻게 다른가?
+5. `examples/07-yacc-calc` 의 `calc.output` 에서
+   `expr '+' expr` 항목이 들어 있는 상태를 찾아라.
+6. Makefile에서 `lex.yy.c: calc.l calc.tab.h` 의 `calc.tab.h` 의존을
+   지우고 `make -j8 clean all` 을 반복 실행해 보라. 무슨 일이 생기는가?
+
+---
+
+다음 장에서는 액션 코드로 **AST를 만들고 의미를 처리하는 법**을 다룬다.

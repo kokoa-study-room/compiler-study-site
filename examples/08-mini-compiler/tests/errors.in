@@ -1,0 +1,10 @@
+int a, b;
+float f;
+int a;
+
+a = 1;
+c = 2;
+b = f;
+a = 1 % f;
+d = a + 1
+b = 3;

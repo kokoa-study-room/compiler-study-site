@@ -1,0 +1,25 @@
+=== 심볼 테이블 ===
+  x            int    (1행 선언)
+  y            float  (2행 선언)
+=== AST ===
+  seq
+    assign x
+      + : int
+        int 2
+        * : int
+          int 3
+          int 4
+    assign y
+      (float)
+        / : int
+          var x : int
+          int 2
+=== 3-주소 코드 ===
+  t1 = 3 * 4
+  t2 = 2 + t1
+  x = t2
+  t3 = x / 2
+  t4 = inttofloat t3
+  y = t4
+----
+컴파일 성공

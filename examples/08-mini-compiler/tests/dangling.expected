@@ -1,0 +1,19 @@
+=== 심볼 테이블 ===
+  a            int    (1행 선언)
+  b            int    (1행 선언)
+  c            int    (1행 선언)
+=== 3-주소 코드 ===
+  a = 1
+  t1 = a > 0
+  ifFalse t1 goto L1
+  t2 = a > 10
+  ifFalse t2 goto L2
+  b = 1
+  goto L3
+L2:
+  b = 2
+L3:
+L1:
+  c = b
+----
+컴파일 성공

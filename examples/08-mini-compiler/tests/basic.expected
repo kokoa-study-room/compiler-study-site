@@ -1,0 +1,49 @@
+=== 심볼 테이블 ===
+  n            int    (2행 선언)
+  i            int    (2행 선언)
+  fact         int    (2행 선언)
+  sum          float  (3행 선언)
+  avg          float  (3행 선언)
+=== 3-주소 코드 ===
+  n = 5
+  i = 1
+  fact = 1
+L1:
+  t1 = i <= n
+  ifFalse t1 goto L2
+  t2 = fact * i
+  fact = t2
+  t3 = i + 1
+  i = t3
+  goto L1
+L2:
+  print fact
+  t4 = inttofloat 0
+  sum = t4
+  i = 1
+L3:
+  t5 = i <= n
+  ifFalse t5 goto L4
+  t6 = inttofloat i
+  t7 = sum + t6
+  sum = t7
+  t8 = i + 1
+  i = t8
+  goto L3
+L4:
+  t9 = inttofloat n
+  t10 = sum / t9
+  avg = t10
+  print avg
+  t11 = inttofloat 2
+  t12 = avg > t11
+  t13 = fact > 100
+  t14 = t12 && t13
+  ifFalse t14 goto L5
+  print 1
+  goto L6
+L5:
+  print 0
+L6:
+----
+컴파일 성공

@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Docusaurus build output
+site/build/
+site/.docusaurus/
+site/.cache-loader/
+
+# Compiled example artifacts
+examples/**/build/
+examples/**/*.o
+examples/**/lex.yy.c
+examples/**/y.tab.c
+examples/**/y.tab.h
+examples/**/*.tab.c
+examples/**/*.tab.h
+examples/**/*.output
+
+# Misc
+.DS_Store
+*.log
+.env.local
+.env.*.local
+
+# Tooling caches
+.omo/
+.codegraph

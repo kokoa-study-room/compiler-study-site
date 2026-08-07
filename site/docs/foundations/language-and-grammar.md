@@ -567,16 +567,283 @@ bison은 `-Wother`로 경고해 준다.
 ## 확인 문제
 
 1. $L = \{a, b\}$, $M = \{\varepsilon, c\}$ 일 때 $LM$, $ML$, $L^2$, $L^*\cap M^*$ 를 구하라.
+
+<details>
+<summary>풀이</summary>
+
+**$LM$** — $L$ 의 각 원소 뒤에 $M$ 의 각 원소를 붙인다.
+
+$$LM = \{a\varepsilon,\ ac,\ b\varepsilon,\ bc\} = \{a,\ ac,\ b,\ bc\}$$
+
+$a\varepsilon = a$ 임에 주의. $\varepsilon$ 은 붙여도 아무 일도 하지 않는다.
+
+**$ML$** — 순서를 바꾼다.
+
+$$ML = \{\varepsilon a,\ \varepsilon b,\ ca,\ cb\} = \{a,\ b,\ ca,\ cb\}$$
+
+$LM \neq ML$ 이다. **접합은 교환법칙이 성립하지 않는다.**
+
+**$L^2 = LL$**
+
+$$L^2 = \{aa,\ ab,\ ba,\ bb\}$$
+
+**$L^* \cap M^*$**
+
+- $L^* = \{a, b\}^*$ — `a`, `b` 로만 이루어진 모든 스트링 ($\varepsilon$ 포함)
+- $M^* = \{\varepsilon, c\}^* = \{c\}^* = \{\varepsilon, c, cc, ccc, \dots\}$
+
+두 집합의 **공통 원소는 $\varepsilon$ 뿐**이다.
+$L^*$ 의 원소에는 `c` 가 없고, $M^*$ 의 원소에는 `a`, `b` 가 없기 때문이다.
+
+$$L^* \cap M^* = \{\varepsilon\}$$
+
+</details>
+
 2. $\emptyset^* $ 와 $\{\varepsilon\}^*$ 를 각각 구하고 왜 그런지 설명하라.
+
+<details>
+<summary>풀이</summary>
+
+**둘 다 $\{\varepsilon\}$ 이다.**
+
+정의를 그대로 따라가 보자.
+
+$$L^* = \bigcup_{i=0}^{\infty} L^i, \qquad L^0 = \{\varepsilon\}$$
+
+**$\emptyset^*$**
+
+- $\emptyset^0 = \{\varepsilon\}$ — 정의상 **항상** 그렇다
+- $\emptyset^1 = \emptyset$
+- $\emptyset^2 = \emptyset\emptyset = \emptyset$ (아무것도 없는 것끼리는 못 붙인다)
+- …
+
+합집합하면 $\{\varepsilon\} \cup \emptyset \cup \emptyset \cup \dots = \{\varepsilon\}$
+
+**직관:** $L^*$ 는 "$L$ 의 원소를 **0개 이상** 골라 이어 붙인 것"이다.
+$L$ 이 비어 있어도 **0개를 고르는 방법은 하나 있다** — 아무것도 안 고르는 것.
+그 결과가 $\varepsilon$ 이다.
+
+**$\{\varepsilon\}^*$**
+
+- $\{\varepsilon\}^0 = \{\varepsilon\}$
+- $\{\varepsilon\}^1 = \{\varepsilon\}$
+- $\{\varepsilon\}^2 = \{\varepsilon\varepsilon\} = \{\varepsilon\}$
+- …
+
+전부 $\{\varepsilon\}$ 이므로 합집합도 $\{\varepsilon\}$.
+
+:::tip[헷갈리지 않는 법]
+$\emptyset$ 은 "**불가능**", $\{\varepsilon\}$ 은 "**아무것도 안 함**"이다.
+
+- $\emptyset$ 과 이어 붙이면 → 불가능 ($\emptyset r = \emptyset$)
+- $\{\varepsilon\}$ 과 이어 붙이면 → 그대로 ($\varepsilon r = r$)
+
+그런데 `*` 는 "0번도 허용"이므로 **불가능한 것도 0번 쓰면 가능**해진다.
+그래서 $\emptyset^*$ 가 비어 있지 않다.
+:::
+
+</details>
+
 3. 다음 문법이 생성하는 언어를 기술하라.
    $$S \to aS \mid Sb \mid \varepsilon$$
    이 문법은 모호한가? 모호하다면 `ab`에 대한 파스 트리 두 개를 그려라.
+
+<details>
+<summary>풀이</summary>
+
+**생성하는 언어**
+
+$$L = \{a^m b^n \mid m, n \geq 0\} = a^*b^*$$
+
+$S \to aS$ 로 앞에 `a` 를 얼마든지 붙일 수 있고,
+$S \to Sb$ 로 뒤에 `b` 를 얼마든지 붙일 수 있다.
+개수 사이에 **아무 관계가 없다**는 점이 중요하다
+($\{a^nb^n\}$ 과 다르다).
+
+**모호하다.** `ab` 에 파스 트리가 둘이다.
+
+**트리 1** — `a` 를 먼저 붙인다 ($S \Rightarrow aS \Rightarrow aSb \Rightarrow ab$)
+
+```mermaid
+flowchart TB
+    S0(("S")) --> A1["a"]
+    S0 --> S1(("S"))
+    S1 --> S2(("S"))
+    S1 --> B1["b"]
+    S2 --> E1["ε"]
+```
+
+**트리 2** — `b` 를 먼저 붙인다 ($S \Rightarrow Sb \Rightarrow aSb \Rightarrow ab$)
+
+```mermaid
+flowchart TB
+    T0(("S")) --> T1(("S"))
+    T0 --> B2["b"]
+    T1 --> A2["a"]
+    T1 --> T2(("S"))
+    T2 --> E2["ε"]
+```
+
+같은 문장 `ab` 인데 트리 모양이 다르다 → **모호하다**.
+
+**모호성 제거**
+
+$a$ 부분과 $b$ 부분을 **분리**하면 된다.
+
+$$
+S \to A B, \qquad A \to aA \mid \varepsilon, \qquad B \to bB \mid \varepsilon
+$$
+
+이제 `a` 는 $A$ 가, `b` 는 $B$ 가 전담하므로 선택의 여지가 없다.
+
+</details>
+
 4. 짝이 맞는 괄호 문자열의 집합을 생성하는 문법을 쓰고, 모호하지 않음을 논증하라.
+
+<details>
+<summary>풀이</summary>
+
+**흔히 쓰는 문법(모호하다)**
+
+$$S \to (\,S\,) \mid SS \mid \varepsilon$$
+
+**이 문법은 모호하다.** `()()` 를 보자.
+$SS$ 규칙을 적용할 때 $\varepsilon$ 을 어디에 끼울지 자유롭다.
+
+$$S \Rightarrow SS \Rightarrow S\,SS \Rightarrow \dots$$
+
+`()()` 를 $S \cdot SS$ 로도, $SS \cdot S$ 로도 쪼갤 수 있다.
+
+**모호하지 않은 문법**
+
+$$S \to (\,S\,)\,S \mid \varepsilon$$
+
+**논증.** 임의의 짝 맞는 문자열 $w$ 에 대해 유도가 유일함을 보인다.
+
+- $w = \varepsilon$ 이면 $S \to \varepsilon$ 밖에 없다. 유일. ✅
+- $w \neq \varepsilon$ 이면 $w$ 는 반드시 `(` 로 시작한다
+  (`)` 로 시작하면 짝이 안 맞는다). 따라서 $S \to (S)S$ 를 써야 한다. 유일.
+
+이제 $w = (\,x\,)\,y$ 로 쪼개는 방법이 유일한지 보면 된다.
+
+$w$ 의 **첫 `(` 와 짝을 이루는 `)`** 는 유일하게 결정된다 —
+왼쪽부터 `(` 는 +1, `)` 는 -1 로 세었을 때 **처음으로 0이 되는 지점**이다.
+그 지점이 닫는 괄호의 위치이고, 그것으로 $x$ 와 $y$ 가 확정된다.
+
+각 단계에서 선택의 여지가 없고 $|x|, |y| < |w|$ 이므로
+길이에 대한 귀납법으로 유도가 유일하다. $\blacksquare$
+
+:::tip[왜 $SS$ 가 모호성을 만드는가]
+$S \to SS$ 는 "$S$ 를 둘로 나눈다"인데 **어디서 나눌지**를 정하지 않는다.
+$S \to (S)S$ 는 "첫 괄호 쌍 + 나머지"로 **자르는 위치를 문법이 고정**한다.
+
+같은 발상이 [좌재귀 제거](/docs/parsing/context-free-grammar#좌재귀-제거)와
+연산자 우선순위 계층화에도 쓰인다.
+:::
+
+</details>
+
 5. 다음 EBNF를 좌재귀 BNF로 바꿔라.
    ```ebnf
    list = item , { "," , item } ;
    ```
+
+<details>
+<summary>풀이</summary>
+
+`{ X }` 는 "X를 0번 이상 반복"이다.
+이것을 **좌재귀**로 옮기면:
+
+$$
+\begin{aligned}
+list &\to list\ ,\ item \\
+list &\to item
+\end{aligned}
+$$
+
+또는 한 줄로 $list \to list \, \texttt{,} \, item \mid item$.
+
+**확인.** `a, b, c` 를 유도해 보자.
+
+```
+list ⇒ list , item        (item = c)
+     ⇒ list , item , item  (item = b)
+     ⇒ item , item , item  (item = a)
+     ⇒ a , b , c
+```
+
+**왜 좌재귀인가.** 재귀 호출 $list$ 가 우변의 **왼쪽 끝**에 있다.
+그래서 파스 트리가 왼쪽으로 자라고, 목록이 **왼쪽부터** 묶인다.
+
+**우재귀로 쓰면**
+
+$$list \to item\ ,\ list \mid item$$
+
+같은 언어를 생성하지만 트리가 오른쪽으로 자란다.
+
+:::caution[어느 쪽을 쓸지는 파서가 정한다]
+- **LR(yacc)** → **좌재귀**를 써야 한다. 우재귀는 스택을 $O(n)$ 으로 키운다
+- **LL(재귀 하강)** → 좌재귀는 **무한 재귀**다. EBNF의 `{ }` 를 그대로
+  `while` 루프로 옮긴다
+
+[18장](/docs/yacc/yacc-overview#반복)과
+[13장](/docs/parsing/ll-parsing#131-재귀-하강-파싱)에서 다시 나온다.
+:::
+
+</details>
+
 6. `a = b = c` 가 `a = (b = c)` 로 해석되도록 대입 연산자의 문법을 써라.
+
+<details>
+<summary>풀이</summary>
+
+**우결합**이 필요하므로 **우재귀**로 쓴다.
+
+$$
+\begin{aligned}
+A &\to B\ \texttt{=}\ A \\
+A &\to B \\
+B &\to \mathbf{id}
+\end{aligned}
+$$
+
+재귀 호출 $A$ 가 우변의 **오른쪽 끝**에 있다.
+
+**확인.** `a = b = c` 의 파스 트리:
+
+```mermaid
+flowchart TB
+    A0(("A")) --> B0(("B"))
+    A0 --> EQ1["="]
+    A0 --> A1(("A"))
+    B0 --> ID1["id: a"]
+    A1 --> B1(("B"))
+    A1 --> EQ2["="]
+    A1 --> A2(("A"))
+    B1 --> ID2["id: b"]
+    A2 --> B2(("B"))
+    B2 --> ID3["id: c"]
+```
+
+트리가 **오른쪽으로** 자란다.
+`b = c` 가 하나의 부분 트리를 이루므로 `a = (b = c)` 다.
+
+**만약 좌재귀로 썼다면**
+
+$$A \to A\ \texttt{=}\ B \mid B$$
+
+트리가 왼쪽으로 자라 `(a = b) = c` 가 된다.
+`(a = b)` 의 결과에 `c` 를 대입한다는 뜻이 되어 C의 의미와 다르다.
+
+:::note[좌재귀 = 좌결합, 우재귀 = 우결합]
+이것이 [2.4절](#모호성-제거---우선순위와-결합성을-문법에-새기기)에서
+말한 결합성 규칙이다.
+
+yacc에서는 문법을 고치는 대신 `%right '='` 한 줄로 같은 효과를 낸다
+([20장](/docs/yacc/conflicts-and-precedence#203-우선순위와-결합성-선언)).
+:::
+
+</details>
 
 ---
 

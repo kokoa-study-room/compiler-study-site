@@ -73,6 +73,19 @@ flowchart LR
 4부→5부는 "CFG → 항목 집합 → LR 표 → 파서"라는 하나의 흐름이다.
 두 흐름은 5부에서 만난다.
 
+:::note[낯선 약어가 보여도 괜찮다]
+NFA, DFA, CFG 같은 말은 각각 해당 장에서 처음부터 정의한다.
+지금은 "두 갈래의 흐름이 있고 나중에 만난다" 정도만 보면 된다.
+
+- **NFA / DFA** — 유한 오토마타. [5장](/docs/regular/finite-automata)에서 정의한다
+- **CFG** — 문맥 자유 문법. [10장](/docs/parsing/context-free-grammar)에서 정의한다
+- **AST** — 추상 구문 트리. [1장](/docs/foundations/compiler-overview#-구문-분석-syntax-analysis)에서 정의한다
+
+읽다가 막히는 용어가 있으면 [용어 사전](/docs/reference/glossary)에
+한국어·영어·정의·해당 장이 정리되어 있다.
+필요한 배경지식은 [시작하기 전에](/docs/prerequisites)에 있다.
+:::
+
 :::tip[이론이 지루하다면]
 2부와 4부의 증명 부분은 처음 읽을 때 건너뛰어도 좋다.
 다만 **부분집합 구성**(2부)과 **FIRST/FOLLOW 계산**(4부)만은 건너뛰지 말 것.

@@ -247,6 +247,18 @@ flowchart TB
     style LALR fill:#e3f5ec,stroke:#0f9d58
 ```
 
+:::note[표에 아직 안 배운 이름이 나온다]
+LR(0), SLR(1), LALR(1) 은 [15장](/docs/parsing/lr-parsing)에서,
+LL(1) 은 [13장](/docs/parsing/ll-parsing)에서 정의한다.
+**GLR**(Generalized LR — 충돌이 나면 여러 가능성을 동시에 탐색하는 파서)과
+**ALL(\*)**(ANTLR 4가 쓰는 적응형 LL 파싱)은
+각각 [16장](/docs/parsing/lr-parser-implementation#168-glr--충돌을-포기하지-않기)과
+[13장](/docs/parsing/ll-parsing#136-llk와-그-너머)에서 다룬다.
+
+지금은 **"오른쪽으로 갈수록 더 많은 문법을 다룰 수 있고, 대신 비싸다"** 는
+순서 관계만 보면 된다.
+:::
+
 | 부류 | 인식 능력 | 도구 |
 |---|---|---|
 | LR(0) | 가장 약함 | (교육용) |

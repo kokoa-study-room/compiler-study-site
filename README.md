@@ -1,0 +1,171 @@
+# 컴파일러 학습 노트
+
+정규 문법부터 LR 파서까지, 이론과 lex/yacc 실습으로 완성하는 컴파일러 프론트엔드 교안.
+
+> 고급 언어 프로그램을 기계어나 어셈블리어로 번역해 주는 소프트웨어인 컴파일러를
+> 구성하는 방법을 배우고 실습한다. 컴파일러 구현에 필요한 개념으로 정규 문법,
+> 문맥 자유 문법, Finite Automata, Pushdown Automata 등 이론적 지식을 기반으로
+> 컴파일러 자동화 도구인 lex, yacc의 사용법을 익히고 이를 활용하여 파서를 구현한다.
+
+---
+
+## 무엇이 들어 있나
+
+| 디렉터리 | 내용 |
+|---|---|
+| `site/` | Docusaurus 3 (TypeScript) 문서 사이트 — 교안 20장 + 실습 4페이지 |
+| `examples/` | 실행 가능한 예제 8개. 전부 `make test` 로 검증된다 |
+| `research/` | 최신 동향 조사의 1차 자료와 출처 |
+| `PROGRESS.md` | 작업 단위별 진행 기록과 설계 판단 |
+
+### 교안 구성
+
+| 부 | 장 |
+|---|---|
+| **1부 기초** | 1. 컴파일러 개요 · 2. 언어와 문법 |
+| **2부 정규언어** | 3. 정규언어 · 4. 정규 표현 · 5. 유한 오토마타 · 6. 정규언어의 표현 방법 |
+| **3부 LEX** | 7. LEX · 8. LEX 입력 및 파싱 · 9. LEX 입력 파일 작성 |
+| **4부 구문 분석** | 10. 문맥 자유 문법 · 11. 문법의 유형 · 12. 구문 분석 · 13. LL 구문 분석 · 14. LR 구문 분석 · 15. LR 파서의 구현 |
+| **5부 YACC** | 16. YACC 개요 · 17. 문법과 액션 · 18. 충돌과 우선순위 |
+| **6부 심화** | 19. 최신 경향과 연구 · 20. 도구 지형도 |
+| **부록** | 용어 사전 · 한 장 요약 |
+| **실습** | 실습 환경 구성 · LEX 실습 · YACC 실습 · 통합 프로젝트 |
+
+### 실습 예제
+
+| 디렉터리 | 주제 |
+|---|---|
+| `01-lex-wordcount` | lex 입력 파일의 3부 구조, `yytext`/`yyleng` |
+| `02-lex-tokenizer` | C 부분집합 토크나이저 — 최장 일치, 규칙 순서, catch-all |
+| `03-dfa-by-hand` | 전이표 구동 / 직접 코딩 DFA를 손으로 작성하고 두 구현의 일치 검증 |
+| `04-lex-states` | 시작 조건, 중첩 주석, 이스케이프 해석, `<<EOF>>` 진단 |
+| `05-recursive-descent` | 손으로 쓴 LL(1) 재귀 하강 계산기 (AST + 호출 추적) |
+| `06-lr-table-driven` | 14장의 SLR 표를 그대로 옮긴 표 구동 LR 파서 |
+| `07-yacc-calc` | flex + bison 계산기 — 우선순위 선언, `error` 토큰 복구 |
+| `08-mini-compiler` | **통합 프로젝트** — 소스 → 토큰 → AST → 타입 검사 → 3-주소 코드 |
+
+---
+
+## 시작하기
+
+### 요구 사항
+
+- [bun](https://bun.sh/) 1.x — 사이트 빌드
+- `flex`, `bison`, C 컴파일러, `make` — 예제 빌드
+
+macOS라면 `xcode-select --install` 로 flex/bison/cc/make가 모두 들어온다.
+자세한 설치 안내는 교안의 **실습 환경 구성** 문서에 있다.
+
+### 사이트
+
+```bash
+cd site
+bun install
+bun start          # 개발 서버 (http://localhost:3000)
+bun run build      # 정적 사이트 빌드
+bun run serve      # 빌드 결과 미리보기
+```
+
+### 예제
+
+```bash
+cd examples
+make               # 전체 빌드
+make test          # 전체 테스트 (8개 예제, 26케이스)
+make clean
+```
+
+개별 예제만:
+
+```bash
+cd examples/08-mini-compiler
+make && make test
+./minic    < tests/basic.in      # 3-주소 코드
+./minic -a < tests/ast.in        # AST 도 함께
+```
+
+### 전체 검증
+
+```bash
+cd site && bun run check     # typecheck + bun test + build
+cd ../examples && make test
+```
+
+---
+
+## 이 교안의 원칙
+
+**이론과 도구를 짝지어 배운다.**
+정규 표현과 유한 오토마타를 배우면 곧바로 `flex -v`, `flex -T` 로
+lex가 그것을 어떻게 자동화하는지 확인한다.
+LR 항목 집합을 배우면 곧바로 `bison -v` 의 `.output` 과 대조한다.
+
+**손으로 한 번, 도구로 한 번.**
+NFA→DFA 부분집합 구성도, LR(0) 항목 집합도 먼저 종이 위에서 돌려 본 뒤
+도구가 뱉은 실제 표와 비교한다.
+
+**문서에 실린 도구 출력은 전부 실제 실행 결과다.**
+`flex -v` 의 상태 수, `flex -d` 의 매치 추적, `bison` 의 충돌 보고서,
+예제 프로그램의 출력 — 지어낸 것이 하나도 없다.
+
+**파싱 표는 기계로 검증한다.**
+교안에 싣는 SLR(1)·LL(1) 표가 실제로 올바른지를
+`site/src/components/parsing/simulate.test.ts` 가 확인한다
+(유효 입력 12개 수락 / 무효 입력 8개 거부 / 축약 순서 일치, 44개 테스트).
+
+**인터랙티브하게 만든다.**
+부분집합 구성, DFA/NFA 시뮬레이션, FIRST/FOLLOW 고정점 계산,
+LL·LR 파싱 스택 — 글로 읽는 것보다 한 단계씩 눌러 보는 편이 빠르다.
+
+---
+
+## 기술 선택
+
+| 선택 | 이유 |
+|---|---|
+| **Docusaurus 3 + TypeScript + bun** | 순서가 있는 긴 문서에 사이드바 모델이 잘 맞고, 검색·다크 모드·MDX가 기본 제공된다 |
+| **Mermaid** | 상태 전이도·파스 트리를 이미지가 아니라 텍스트로 관리한다. diff에 남고 다크 모드에 자동 대응한다 |
+| **KaTeX** | $\Sigma^*$, $\delta(q,a)$ 같은 표기가 검색·복사 가능해야 한다 |
+| **`markdown.format: 'detect'`** | 교안 본문의 `{a, b}`, `<expr>` 표기가 MDX의 JSX로 해석되지 않도록 `.md`는 CommonMark로 처리 |
+| **`onBrokenLinks: 'throw'`** | 장 사이 상호 참조가 많아 링크 검사가 곧 회귀 테스트다 |
+
+---
+
+## 알아 둘 함정 두 가지
+
+작업하면서 겪은, **빌드는 통과하는데 결과가 틀리는** 문제들이다.
+문서를 고칠 때 참고하자.
+
+### 1. admonition 제목은 반드시 대괄호로
+
+```md
+:::tip 제목        ❌ 경고 없이 무시되고 ::: 가 본문에 그대로 찍힌다
+:::tip[제목]       ✅
+```
+
+Docusaurus 3(MDX v3)에서 공백 제목 문법이 조용히 버려진다.
+확인 방법:
+
+```bash
+grep -c 'theme-admonition' site/build/docs/*/index.html
+```
+
+### 2. 수식 안에 `$` 를 넣지 말 것
+
+```md
+$\text{$\varepsilon$-closure}(T)$     ❌ 안쪽 $ 에서 수식이 끊긴다
+$\varepsilon\text{-closure}(T)$       ✅
+
+$\mathrm{ACTION}[i, \$]$              ❌ 같은 문제, MDX에서는 빌드 실패
+`ACTION[i, $]`                        ✅ 코드 스팬으로
+```
+
+remark-math는 `\$` 를 이스케이프로 보지 않는다.
+`.mdx` 파일에서는 끊긴 수식 뒤의 `{...}` 가 JSX 표현식으로 해석되어
+빌드가 실패한다.
+
+---
+
+## 라이선스
+
+교육용 자료. 참고 문헌의 저작권은 각 저자에게 있다.

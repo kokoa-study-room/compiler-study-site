@@ -103,6 +103,31 @@ const sidebars: SidebarsConfig = {
         'yacc/conflicts-and-precedence',
       ],
     },
+    {
+      type: 'category',
+      label: '6부 · 심화와 최신 동향',
+      collapsed: false,
+      link: {
+        type: 'generated-index',
+        title: '6부 · 심화와 최신 동향',
+        description:
+          '교과서의 lex/yacc 바깥에서 지금 실제로 쓰이는 기술 — 점진적 파싱, PEG, MLIR, 검증된 컴파일러, LLM 기반 최적화.',
+        slug: '/category/modern',
+      },
+      items: ['modern/trends', 'modern/toolchain-map'],
+    },
+    {
+      type: 'category',
+      label: '부록',
+      collapsed: true,
+      link: {
+        type: 'generated-index',
+        title: '부록',
+        description: '용어 사전과 한 장짜리 요약 시트.',
+        slug: '/category/reference',
+      },
+      items: ['reference/glossary', 'reference/cheatsheet'],
+    },
   ],
 
   labSidebar: [

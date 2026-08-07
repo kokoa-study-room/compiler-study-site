@@ -23,10 +23,10 @@ const config: Config = {
   organizationName: 'compiler-study',
   projectName: 'compiler-study-site',
 
-  // 집필이 진행 중인 동안에는 아직 없는 뒷장으로의 링크를 허용한다.
-  // 모든 파트가 채워진 뒤 'throw' 로 되돌려 최종 검증한다.
-  onBrokenLinks: 'warn',
-  onBrokenAnchors: 'warn',
+  // 끊긴 링크와 앵커는 빌드를 실패시킨다.
+  // 장 사이 상호 참조가 많은 교안이라 이 검사가 곧 회귀 테스트 역할을 한다.
+  onBrokenLinks: 'throw',
+  onBrokenAnchors: 'throw',
 
   i18n: {
     defaultLocale: 'ko',
@@ -143,13 +143,28 @@ const config: Config = {
           items: [
             {label: '들어가며', to: '/docs/intro'},
             {label: '컴파일러 개요', to: '/docs/foundations/compiler-overview'},
+            {label: '유한 오토마타', to: '/docs/regular/finite-automata'},
+            {label: 'LR 구문 분석', to: '/docs/parsing/lr-parsing'},
+            {label: 'YACC 개요', to: '/docs/yacc/yacc-overview'},
+          ],
+        },
+        {
+          title: '실습',
+          items: [
+            {label: '실습 환경 구성', to: '/docs/labs/setup'},
+            {label: 'LEX 실습', to: '/docs/labs/lex-labs'},
+            {label: 'YACC 실습', to: '/docs/labs/yacc-labs'},
+            {label: '통합 프로젝트', to: '/docs/labs/mini-compiler'},
           ],
         },
         {
           title: '더 보기',
           items: [
+            {label: '최신 경향과 연구', to: '/docs/modern/trends'},
+            {label: '도구 지형도', to: '/docs/modern/toolchain-map'},
+            {label: '용어 사전', to: '/docs/reference/glossary'},
+            {label: '한 장 요약', to: '/docs/reference/cheatsheet'},
             {label: '개발 로그', to: '/log'},
-            {label: 'GitHub', href: GITHUB_REPO},
           ],
         },
       ],

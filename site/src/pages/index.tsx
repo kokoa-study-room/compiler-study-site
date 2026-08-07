@@ -47,7 +47,7 @@ function Hero(): ReactNode {
             고급 언어 프로그램을 기계어나 어셈블리어로 번역하는 소프트웨어를
             직접 만들어 보는 교안입니다. 정규 문법·문맥 자유 문법·
             <abbr title="Finite Automata">유한 오토마타</abbr>·
-            <abbr title="Pushdown Automata">푸시다운 오토마타</abbr>
+            <abbr title="Pushdown Automata">푸시다운 오토마타</abbr>{' '}
             같은 이론을 세운 다음, <code>lex</code>와 <code>yacc</code>로
             그 이론을 그대로 코드로 옮깁니다.
           </p>

@@ -1,19 +1,19 @@
-facebook:
-  label: Facebook
-  permalink: /facebook
-  description: Facebook tag description
+setup:
+  label: 환경 구성
+  permalink: /setup
+  description: 사이트 구축과 도구 설정에 관한 기록
 
-hello:
-  label: Hello
-  permalink: /hello
-  description: Hello tag description
+content:
+  label: 교안 집필
+  permalink: /content
+  description: 교안 본문 작성 진행 기록
 
-docusaurus:
-  label: Docusaurus
-  permalink: /docusaurus
-  description: Docusaurus tag description
+examples:
+  label: 실습 코드
+  permalink: /examples
+  description: 실행 가능한 예제 코드 작업 기록
 
-hola:
-  label: Hola
-  permalink: /hola
-  description: Hola tag description
+research:
+  label: 리서치
+  permalink: /research
+  description: 최신 동향 조사 기록

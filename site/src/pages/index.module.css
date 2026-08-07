@@ -1,23 +1,149 @@
-/**
- * CSS files with the .module.css suffix will be treated as CSS modules
- * and scoped locally.
- */
-
-.heroBanner {
-  padding: 4rem 0;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
+.hero {
+  padding: 3.5rem 0 3rem;
+  background: linear-gradient(
+    140deg,
+    var(--ifm-color-primary-darkest) 0%,
+    var(--ifm-color-primary) 55%,
+    var(--ifm-color-primary-light) 100%
+  );
+  color: #fff;
 }
 
-@media screen and (max-width: 996px) {
-  .heroBanner {
-    padding: 2rem;
+[data-theme='dark'] .hero {
+  background: linear-gradient(140deg, #1e1b4b 0%, #2f2a72 55%, #3b3595 100%);
+}
+
+.heroInner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 2.5rem;
+  align-items: center;
+}
+
+@media (max-width: 996px) {
+  .heroInner {
+    grid-template-columns: 1fr;
   }
 }
 
-.buttons {
+.heroTitle {
+  font-size: 2.6rem;
+  margin-bottom: 0.75rem;
+}
+
+.heroTagline {
+  font-size: 1.02rem;
+  line-height: 1.8;
+  opacity: 0.94;
+  margin-bottom: 1.6rem;
+}
+
+.heroTagline code {
+  background: rgba(255, 255, 255, 0.16);
+  border: none;
+  color: inherit;
+}
+
+.heroTagline abbr {
+  text-decoration-style: dotted;
+  cursor: help;
+}
+
+.heroButtons {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.heroSample {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.heroSampleLabel {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  padding: 0.45rem 0.9rem;
+  background: rgba(0, 0, 0, 0.35);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.heroSample :global(.theme-code-block) {
+  margin-bottom: 0 !important;
+  border-radius: 0 !important;
+}
+
+.heroSample :global(pre) {
+  font-size: 0.78rem;
+  line-height: 1.55;
+  border-radius: 0;
+}
+
+/* ── 파이프라인 ─────────────────────────────────────────── */
+
+.pipelineSection {
+  padding: 3rem 0 1rem;
+}
+
+.pipelineTitle {
+  font-size: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.pipelineLead {
+  color: var(--cs-text-muted);
+  max-width: 62ch;
+  margin-bottom: 1.5rem;
+}
+
+.pipeline {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.pipelineStep {
+  flex: 1 1 10rem;
+  border: 1px solid var(--cs-border);
+  border-radius: 10px;
+  background: var(--cs-surface-alt);
+  padding: 0.7rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  position: relative;
+}
+
+.pipelineStepFocus {
+  border-color: var(--ifm-color-primary);
+  background: var(--cs-accent-soft);
+  box-shadow: 0 0 0 1px var(--ifm-color-primary) inset;
+}
+
+.pipelineStage {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.pipelineDetail {
+  font-size: 0.72rem;
+  line-height: 1.45;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--cs-text-muted);
+  word-break: break-word;
+}
+
+.pipelineNote {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--cs-text-muted);
 }

@@ -1,30 +1,109 @@
 /**
- * Any CSS included here will be global. The classic template
- * bundles Infima by default. Infima is a CSS framework designed to
- * work well for content-centric websites.
+ * 컴파일러 학습 노트 — 전역 스타일
+ * Infima 변수를 덮어써서 사이트 전체 톤을 잡는다.
  */
 
-/* You can override the default Infima variables here. */
+/* KaTeX 스타일은 CDN 대신 번들에 포함시켜 오프라인에서도 수식이 깨지지 않게 한다. */
+@import '~katex/dist/katex.min.css';
+
 :root {
-  --ifm-color-primary: #2e8555;
-  --ifm-color-primary-dark: #29784c;
-  --ifm-color-primary-darker: #277148;
-  --ifm-color-primary-darkest: #205d3b;
-  --ifm-color-primary-light: #33925d;
-  --ifm-color-primary-lighter: #359962;
-  --ifm-color-primary-lightest: #3cad6e;
-  --ifm-code-font-size: 95%;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  --ifm-color-primary: #4f46e5;
+  --ifm-color-primary-dark: #3d33e2;
+  --ifm-color-primary-darker: #3429dc;
+  --ifm-color-primary-darkest: #2b22b6;
+  --ifm-color-primary-light: #6159e8;
+  --ifm-color-primary-lighter: #6b63ea;
+  --ifm-color-primary-lightest: #8c86ef;
+
+  --ifm-code-font-size: 92%;
+  --ifm-font-family-monospace: ui-monospace, SFMono-Regular, 'SF Mono', Menlo,
+    Consolas, 'Liberation Mono', monospace;
+  --ifm-heading-font-weight: 700;
+  --ifm-h1-font-size: 2.1rem;
+  --ifm-h2-font-size: 1.6rem;
+  --ifm-h3-font-size: 1.25rem;
+
+  --docusaurus-highlighted-code-line-bg: rgba(79, 70, 229, 0.12);
+
+  /* 오토마타/파서 시각화 컴포넌트가 공유하는 팔레트 */
+  --cs-surface: #ffffff;
+  --cs-surface-alt: #f6f7fb;
+  --cs-border: #d8dbe8;
+  --cs-text-muted: #5a607a;
+  --cs-accent: #4f46e5;
+  --cs-accent-soft: #e8e7fd;
+  --cs-accept: #0f9d58;
+  --cs-accept-soft: #e3f5ec;
+  --cs-reject: #d93025;
+  --cs-reject-soft: #fdeceb;
+  --cs-active: #f4b400;
+  --cs-active-soft: #fff5da;
 }
 
-/* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
-  --ifm-color-primary: #25c2a0;
-  --ifm-color-primary-dark: #21af90;
-  --ifm-color-primary-darker: #1fa588;
-  --ifm-color-primary-darkest: #1a8870;
-  --ifm-color-primary-light: #29d5b0;
-  --ifm-color-primary-lighter: #32d8b4;
-  --ifm-color-primary-lightest: #4fddbf;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  --ifm-color-primary: #a5b4fc;
+  --ifm-color-primary-dark: #8496fb;
+  --ifm-color-primary-darker: #7488fa;
+  --ifm-color-primary-darkest: #4560f8;
+  --ifm-color-primary-light: #c6d2fd;
+  --ifm-color-primary-lighter: #d6e0fe;
+  --ifm-color-primary-lightest: #e7edfe;
+
+  --docusaurus-highlighted-code-line-bg: rgba(165, 180, 252, 0.18);
+
+  --cs-surface: #1b1b1f;
+  --cs-surface-alt: #24242b;
+  --cs-border: #3a3a46;
+  --cs-text-muted: #a3a7bd;
+  --cs-accent: #a5b4fc;
+  --cs-accent-soft: #2e2f52;
+  --cs-accept: #4ade80;
+  --cs-accept-soft: #1c3529;
+  --cs-reject: #f87171;
+  --cs-reject-soft: #3a2323;
+  --cs-active: #fbbf24;
+  --cs-active-soft: #3a3121;
+}
+
+/* 잘못된 코드를 보여 줄 때 쓰는 magic comment 라인 하이라이트 */
+.code-block-error-line {
+  background-color: rgba(217, 48, 37, 0.14);
+  display: block;
+  margin: 0 calc(-1 * var(--ifm-pre-padding));
+  padding: 0 var(--ifm-pre-padding);
+  border-left: 3px solid var(--cs-reject);
+}
+
+/* 본문 가독성: 한국어 문장이 길어지므로 줄 간격을 조금 넉넉하게 */
+.markdown {
+  line-height: 1.75;
+}
+
+.markdown table {
+  display: table;
+  width: 100%;
+}
+
+.markdown table th {
+  background-color: var(--cs-surface-alt);
+  white-space: nowrap;
+}
+
+/* Mermaid 다이어그램을 가운데 정렬하고 좁은 화면에서 가로 스크롤되게 */
+.docusaurus-mermaid-container {
+  overflow-x: auto;
+  text-align: center;
+  margin-bottom: var(--ifm-leading);
+}
+
+/* KaTeX 디스플레이 수식이 좁은 화면에서 넘칠 때 */
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.25rem 0;
+}
+
+/* admonition 안의 코드 블록 여백 정리 */
+.theme-admonition pre {
+  margin-bottom: 0.6rem;
 }

@@ -1,39 +1,54 @@
 import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
+const GITHUB_REPO = 'https://github.com/your-org/compiler-study-site';
+
 const config: Config = {
-  title: 'My Site',
-  tagline: 'Dinosaurs are cool',
+  title: '컴파일러 학습 노트',
+  tagline: '정규문법부터 LR 파서까지 — 이론과 lex/yacc 실습으로 완성하는 컴파일러 프론트엔드',
   favicon: 'img/favicon.ico',
 
-  // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
-    v4: true, // Improve compatibility with the upcoming Docusaurus v4
+    v4: true,
   },
 
-  // Set the production url of your site here
-  url: 'https://your-docusaurus-site.example.com',
-  // Set the /<baseUrl>/ pathname under which your site is served
-  // For GitHub pages deployment, it is often '/<projectName>/'
+  url: 'https://compiler-study.example.com',
   baseUrl: '/',
 
-  // GitHub pages deployment config.
-  // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'facebook', // Usually your GitHub org/user name.
-  projectName: 'docusaurus', // Usually your repo name.
+  organizationName: 'compiler-study',
+  projectName: 'compiler-study-site',
 
-  onBrokenLinks: 'throw',
+  // 집필이 진행 중인 동안에는 아직 없는 뒷장으로의 링크를 허용한다.
+  // 모든 파트가 채워진 뒤 'throw' 로 되돌려 최종 검증한다.
+  onBrokenLinks: 'warn',
+  onBrokenAnchors: 'warn',
 
-  // Even if you don't use internationalization, you can use this field to set
-  // useful metadata like html lang. For example, if your site is Chinese, you
-  // may want to replace "en" with "zh-Hans".
   i18n: {
-    defaultLocale: 'en',
-    locales: ['en'],
+    defaultLocale: 'ko',
+    locales: ['ko'],
+    localeConfigs: {
+      ko: {
+        label: '한국어',
+        direction: 'ltr',
+        htmlLang: 'ko-KR',
+      },
+    },
   },
+
+  markdown: {
+    mermaid: true,
+    // 교안 본문에는 `{a, b}`, `<expr>`, `S → αβ` 같은 표기가 끊임없이 등장한다.
+    // 이들이 MDX의 JSX 표현식으로 해석되면 빌드가 깨지므로,
+    // .md 는 CommonMark 로, React 컴포넌트가 필요한 페이지만 .mdx 로 다룬다.
+    format: 'detect',
+  },
+
+  themes: ['@docusaurus/theme-mermaid'],
 
   presets: [
     [
@@ -41,24 +56,27 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+          routeBasePath: 'docs',
+          editUrl: `${GITHUB_REPO}/tree/main/site/`,
+          remarkPlugins: [remarkMath],
+          rehypePlugins: [rehypeKatex],
+          showLastUpdateTime: true,
         },
         blog: {
+          path: 'blog',
+          routeBasePath: 'log',
+          blogTitle: '개발 로그',
+          blogDescription: '이 사이트를 만들어 가는 과정의 작업 단위별 기록',
+          blogSidebarTitle: '전체 기록',
+          blogSidebarCount: 'ALL',
           showReadingTime: true,
           feedOptions: {
             type: ['rss', 'atom'],
             xslt: true,
           },
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
-          // Useful options to enforce blogging best practices
+          editUrl: `${GITHUB_REPO}/tree/main/site/`,
           onInlineTags: 'warn',
-          onInlineAuthors: 'warn',
+          onInlineAuthors: 'ignore',
           onUntruncatedBlogPosts: 'warn',
         },
         theme: {
@@ -69,27 +87,49 @@ const config: Config = {
   ],
 
   themeConfig: {
-    // Replace with your project's social card
     image: 'img/docusaurus-social-card.jpg',
     colorMode: {
       respectPrefersColorScheme: true,
     },
+    mermaid: {
+      theme: {light: 'neutral', dark: 'dark'},
+    },
+    docs: {
+      sidebar: {
+        hideable: true,
+        autoCollapseCategories: false,
+      },
+    },
+    tableOfContents: {
+      minHeadingLevel: 2,
+      maxHeadingLevel: 4,
+    },
     navbar: {
-      title: 'My Site',
+      title: '컴파일러 학습 노트',
       logo: {
-        alt: 'My Site Logo',
+        alt: '컴파일러 학습 노트 로고',
         src: 'img/logo.svg',
       },
       items: [
         {
           type: 'docSidebar',
-          sidebarId: 'tutorialSidebar',
+          sidebarId: 'courseSidebar',
           position: 'left',
-          label: 'Tutorial',
+          label: '교안',
         },
-        {to: '/blog', label: 'Blog', position: 'left'},
         {
-          href: 'https://github.com/facebook/docusaurus',
+          type: 'docSidebar',
+          sidebarId: 'labSidebar',
+          position: 'left',
+          label: '실습',
+        },
+        {to: '/log', label: '개발 로그', position: 'left'},
+        {
+          type: 'search',
+          position: 'right',
+        },
+        {
+          href: GITHUB_REPO,
           label: 'GitHub',
           position: 'right',
         },
@@ -99,50 +139,47 @@ const config: Config = {
       style: 'dark',
       links: [
         {
-          title: 'Docs',
+          title: '교안',
           items: [
-            {
-              label: 'Tutorial',
-              to: '/docs/intro',
-            },
+            {label: '들어가며', to: '/docs/intro'},
+            {label: '컴파일러 개요', to: '/docs/foundations/compiler-overview'},
           ],
         },
         {
-          title: 'Community',
+          title: '더 보기',
           items: [
-            {
-              label: 'Stack Overflow',
-              href: 'https://stackoverflow.com/questions/tagged/docusaurus',
-            },
-            {
-              label: 'Discord',
-              href: 'https://discordapp.com/invite/docusaurus',
-            },
-            {
-              label: 'X',
-              href: 'https://x.com/docusaurus',
-            },
-          ],
-        },
-        {
-          title: 'More',
-          items: [
-            {
-              label: 'Blog',
-              to: '/blog',
-            },
-            {
-              label: 'GitHub',
-              href: 'https://github.com/facebook/docusaurus',
-            },
+            {label: '개발 로그', to: '/log'},
+            {label: 'GitHub', href: GITHUB_REPO},
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+      copyright: `컴파일러 학습 노트 · Docusaurus로 제작 · ${new Date().getFullYear()}`,
     },
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
+      additionalLanguages: [
+        'c',
+        'bash',
+        'makefile',
+        'json',
+        'ebnf',
+        'antlr4',
+        'regex',
+        'llvm',
+      ],
+      magicComments: [
+        {
+          className: 'theme-code-block-highlighted-line',
+          line: 'highlight-next-line',
+          block: {start: 'highlight-start', end: 'highlight-end'},
+        },
+        {
+          className: 'code-block-error-line',
+          line: 'error-next-line',
+          block: {start: 'error-start', end: 'error-end'},
+        },
+      ],
     },
   } satisfies Preset.ThemeConfig,
 };

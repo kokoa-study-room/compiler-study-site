@@ -66,6 +66,26 @@ const sidebars: SidebarsConfig = {
         'lex/writing-lex-files',
       ],
     },
+    {
+      type: 'category',
+      label: '4부 · 문맥 자유 문법과 구문 분석',
+      collapsed: false,
+      link: {
+        type: 'generated-index',
+        title: '4부 · 문맥 자유 문법과 구문 분석',
+        description:
+          '정규언어로는 표현할 수 없는 중첩 구조를 다루기 위한 문맥 자유 문법과, 그로부터 파스 트리를 만들어 내는 LL/LR 구문 분석 알고리즘.',
+        slug: '/category/parsing',
+      },
+      items: [
+        'parsing/context-free-grammar',
+        'parsing/grammar-hierarchy',
+        'parsing/syntax-analysis',
+        'parsing/ll-parsing',
+        'parsing/lr-parsing',
+        'parsing/lr-parser-implementation',
+      ],
+    },
   ],
 
   labSidebar: [

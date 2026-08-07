@@ -1,0 +1,562 @@
+---
+id: lr-parsing
+title: 14. LR 구문 분석
+sidebar_label: 14. LR 구문 분석
+sidebar_position: 5
+description: 이동-축약 파싱, LR(0) 항목과 정준 집합, SLR(1)·LR(1)·LALR(1) 표 만들기와 충돌.
+---
+
+import LRParser from '@site/src/components/parsing/LRParser';
+import {exprGrammarLR, exprSLRTable} from '@site/src/components/parsing/grammars';
+
+# 14. LR 구문 분석
+
+**LR** 도 두 글자의 뜻이 다르다.
+
+| 글자 | 뜻 |
+|---|---|
+| **L** | **L**eft-to-right — 입력을 왼쪽에서 오른쪽으로 읽는다 |
+| **R** | **R**ightmost derivation in reverse — 우측 유도를 **거꾸로** 만든다 |
+| (k) | lookahead 토큰 수 |
+
+LR 파싱이 LL보다 강한 이유는 하나다.
+
+> **결정을 최대한 늦춘다.**
+> 우변 전체가 스택에 쌓일 때까지 기다렸다가 축약한다.
+
+대가는 **표를 손으로 만들기가 훨씬 복잡하다**는 것이다.
+그래서 yacc 같은 도구가 존재한다.
+
+---
+
+## 14.1 이동-축약 파싱
+
+LR 파서의 동작은 두 가지뿐이다.
+
+| 동작 | 하는 일 |
+|---|---|
+| **이동(shift)** | 입력 토큰 하나를 스택에 밀어 넣는다 |
+| **축약(reduce)** | 스택 맨 위의 $\beta$ 를 $A \to \beta$ 의 $A$ 로 바꾼다 |
+
+여기에 **수락(accept)** 과 **오류(error)** 를 더하면 전부다.
+
+### 손으로 돌려 보기
+
+문법:
+
+$$
+\begin{aligned}
+(1)\ & E \to E + T \quad &(2)\ & E \to T \\
+(3)\ & T \to T * F \quad &(4)\ & T \to F \\
+(5)\ & F \to (\,E\,) \quad &(6)\ & F \to \mathbf{id}
+\end{aligned}
+$$
+
+입력 `id + id * id`:
+
+| 스택 | 입력 | 동작 |
+|---|---|---|
+| `$` | `id + id * id $` | 이동 |
+| `$ id` | `+ id * id $` | 축약 $F \to \mathbf{id}$ |
+| `$ F` | `+ id * id $` | 축약 $T \to F$ |
+| `$ T` | `+ id * id $` | 축약 $E \to T$ |
+| `$ E` | `+ id * id $` | 이동 |
+| `$ E +` | `id * id $` | 이동 |
+| `$ E + id` | `* id $` | 축약 $F \to \mathbf{id}$ |
+| `$ E + F` | `* id $` | 축약 $T \to F$ |
+| `$ E + T` | `* id $` | **이동** ← 여기가 핵심 |
+| `$ E + T *` | `id $` | 이동 |
+| `$ E + T * id` | `$` | 축약 $F \to \mathbf{id}$ |
+| `$ E + T * F` | `$` | 축약 $T \to T * F$ |
+| `$ E + T` | `$` | 축약 $E \to E + T$ |
+| `$ E` | `$` | **수락** |
+
+:::danger[9행이 LR의 전부다]
+스택이 `$ E + T` 이고 입력이 `*` 일 때,
+$E \to E + T$ 로 **축약할 수도 있고** `*` 를 **이동할 수도 있다**.
+
+- 축약하면 → `(id + id) * id` 로 해석된다
+- 이동하면 → `id + (id * id)` 로 해석된다
+
+올바른 것은 **이동**이다. 곱셈이 먼저이기 때문이다.
+
+이 하나의 결정을 자동으로 내리게 하는 것이 LR 표의 존재 이유이고,
+이 장의 나머지 전부는 "그 표를 어떻게 만드는가"다.
+:::
+
+### 핸들
+
+:::info[정의 — 핸들(handle)]
+우측 유도 $S \Rightarrow_{rm}^* \alpha A w \Rightarrow_{rm} \alpha \beta w$ 에서,
+문장 형태 $\alpha\beta w$ 의 **핸들**은 위치 $\alpha$ 다음의 $\beta$ 와 규칙 $A \to \beta$ 다.
+
+($w$ 는 터미널만으로 이루어진다는 점이 중요하다.)
+:::
+
+**핸들이란 "지금 축약해야 할 바로 그 부분"** 이다.
+LR 파싱은 곧 **핸들을 찾아 축약하기를 반복**하는 것이다.
+
+핸들은 **항상 스택의 맨 위에 나타난다.** 이것이 스택으로 파싱이 가능한 이유다.
+증명은 우측 유도의 성질에서 나온다 — 오른쪽부터 전개했으므로,
+거꾸로 축약할 때는 왼쪽부터, 즉 스택 위쪽부터 처리된다.
+
+---
+
+## 14.2 LR(0) 항목
+
+핸들을 찾으려면 **"지금 어느 규칙의 어디까지 봤는가"** 를 추적해야 한다.
+이를 표현하는 것이 **항목(item)** 이다.
+
+:::info[정의 — LR(0) 항목]
+생성 규칙의 우변 어딘가에 점 `·` 을 찍은 것.
+
+규칙 $A \to XYZ$ 로부터 네 개의 항목이 나온다.
+
+$$
+A \to \cdot XYZ, \quad A \to X \cdot YZ, \quad A \to XY \cdot Z, \quad A \to XYZ \cdot
+$$
+
+$A \to \varepsilon$ 로부터는 $A \to \cdot$ 하나만 나온다.
+:::
+
+점의 의미:
+
+- 점 **왼쪽** — 이미 스택에 쌓여 있는 부분
+- 점 **오른쪽** — 앞으로 입력에서 볼 것으로 기대하는 부분
+
+$A \to XYZ\cdot$ 처럼 점이 맨 끝에 있으면 **완결 항목(complete item)** 이고,
+"이제 $A$ 로 축약할 수 있다"는 뜻이다.
+
+### 증강 문법
+
+시작 심볼에 대한 규칙을 하나 추가한다.
+
+$$
+(0)\ E' \to E
+$$
+
+이렇게 하면 "$E' \to E\cdot$ 에 도달했고 입력이 끝났다"가
+**수락 조건**으로 깔끔하게 표현된다.
+
+---
+
+## 14.3 정준 LR(0) 항목 집합
+
+### CLOSURE
+
+:::info[CLOSURE(I)]
+```
+CLOSURE(I):
+    반복:
+      I 의 각 항목 A → α · B β 에 대해   (B 는 넌터미널)
+        B → γ 인 모든 규칙에 대해
+          B → · γ 를 I 에 추가
+    더 이상 추가되지 않을 때까지
+```
+:::
+
+직관: "$B$ 를 볼 차례라면, $B$ 를 만드는 어떤 규칙이든 그 **시작 지점**에
+있을 수 있다."
+
+### GOTO
+
+:::info[GOTO(I, X)]
+$I$ 의 항목 중 $A \to \alpha \cdot X \beta$ 형태인 것들에 대해
+점을 $X$ 너머로 옮긴 항목 $A \to \alpha X \cdot \beta$ 들을 모은 뒤,
+그 CLOSURE 를 취한다.
+:::
+
+"$X$ 를 하나 읽었을 때 어느 상태로 가는가"다. DFA의 전이 함수와 같다.
+
+### 정준 집합 만들기
+
+$C = \{\mathrm{CLOSURE}(\{E' \to \cdot E\})\}$ 에서 시작해,
+각 집합에 모든 문법 심볼로 GOTO 를 적용해 새 집합을 계속 추가한다.
+
+**식 문법의 정준 LR(0) 집합** (11개):
+
+```
+I0: E' → · E          I1: E' → E ·         I2: E → T ·
+    E  → · E + T           E  → E · + T        T → T · * F
+    E  → · T
+    T  → · T * F      I3: T → F ·          I4: F → ( · E )
+    T  → · F                                   E → · E + T
+    F  → · ( E )      I5: F → id ·             E → · T
+    F  → · id                                  T → · T * F
+                                               T → · F
+I6: E → E + · T       I7: T → T * · F          F → · ( E )
+    T → · T * F           F → · ( E )          F → · id
+    T → · F               F → · id
+    F → · ( E )
+    F → · id          I9: E → E + T ·      I10: T → T * F ·
+                          T → T · * F
+I8: F → ( E · )
+    E → E · + T       I11: F → ( E ) ·
+```
+
+전이도로 보면 이렇다.
+
+```mermaid
+flowchart LR
+    I0(("I0")) -->|E| I1(("I1"))
+    I0 -->|T| I2(("I2"))
+    I0 -->|F| I3(("I3"))
+    I0 -->|"("| I4(("I4"))
+    I0 -->|id| I5(("I5"))
+    I1 -->|"+"| I6(("I6"))
+    I2 -->|"*"| I7(("I7"))
+    I4 -->|E| I8(("I8"))
+    I4 -->|T| I2
+    I4 -->|F| I3
+    I4 -->|"("| I4
+    I4 -->|id| I5
+    I6 -->|T| I9(("I9"))
+    I6 -->|F| I3
+    I6 -->|"("| I4
+    I6 -->|id| I5
+    I7 -->|F| I10(("I10"))
+    I7 -->|"("| I4
+    I7 -->|id| I5
+    I8 -->|"+"| I6
+    I8 -->|")"| I11(("I11"))
+    I9 -->|"*"| I7
+```
+
+:::tip[이 오토마타의 정체]
+이것은 **"실행 가능한 접두사(viable prefix)"를 인식하는 DFA**다.
+
+실행 가능한 접두사란 "올바른 우측 문장 형태의 접두사 중,
+핸들의 오른쪽 끝을 넘지 않는 것"이다.
+쉽게 말해 **스택에 쌓여 있을 수 있는 심볼 열**이다.
+
+놀라운 사실: **실행 가능한 접두사의 집합은 정규언어다.**
+그래서 유한 오토마타로 인식할 수 있고, LR 파서는
+"이 DFA + 스택"으로 구현된다.
+
+2부에서 배운 유한 오토마타가 여기서 다시 나온다는 점이 아름답다.
+:::
+
+---
+
+## 14.4 SLR(1) 표 만들기
+
+가장 단순한 LR 표 구성법이다.
+
+:::info[SLR(1) 표 구성]
+
+각 상태 $I_i$ 에 대해:
+
+1. $A \to \alpha \cdot a \beta \in I_i$ 이고 $\mathrm{GOTO}(I_i, a) = I_j$ 이면
+   $\mathrm{ACTION}[i, a] = \textbf{shift } j$
+2. $A \to \alpha \cdot \in I_i$ ($A \neq S'$) 이면,
+   **$\mathrm{FOLLOW}(A)$ 의 모든 $a$** 에 대해
+   $\mathrm{ACTION}[i, a] = \textbf{reduce } A \to \alpha$
+3. $S' \to S \cdot \in I_i$ 이면 `ACTION[i, $]` = **accept**
+4. $\mathrm{GOTO}(I_i, A) = I_j$ ($A$ 는 넌터미널) 이면 $\mathrm{GOTO}[i, A] = j$
+5. 나머지는 오류
+:::
+
+**"S"는 Simple의 약자다.** 축약 결정에
+[12장에서 구한](/docs/parsing/syntax-analysis#125-직접-계산해-보기)
+FOLLOW 집합을 그대로 쓰기 때문이다.
+
+| 넌터미널 | FOLLOW |
+|---|---|
+| $E$ | `{ +, ), $ }` |
+| $T$ | `{ +, *, ), $ }` |
+| $F$ | `{ +, *, ), $ }` |
+
+### 완성된 표
+
+| 상태 | `id` | `+` | `*` | `(` | `)` | `$` | | `E` | `T` | `F` |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 0 | s5 | | | s4 | | | | 1 | 2 | 3 |
+| 1 | | s6 | | | | **acc** | | | | |
+| 2 | | r2 | s7 | | r2 | r2 | | | | |
+| 3 | | r4 | r4 | | r4 | r4 | | | | |
+| 4 | s5 | | | s4 | | | | 8 | 2 | 3 |
+| 5 | | r6 | r6 | | r6 | r6 | | | | |
+| 6 | s5 | | | s4 | | | | | 9 | 3 |
+| 7 | s5 | | | s4 | | | | | | 10 |
+| 8 | | s6 | | | s11 | | | | | |
+| 9 | | r1 | s7 | | r1 | r1 | | | | |
+| 10 | | r3 | r3 | | r3 | r3 | | | | |
+| 11 | | r5 | r5 | | r5 | r5 | | | | |
+
+**상태 2를 읽어 보자.** $I_2 = \{E \to T\cdot,\ T \to T\cdot *F\}$
+
+- $E \to T\cdot$ 는 완결 항목 → FOLLOW($E$) = `{ +, ), $ }` 열에 `r2`
+- $T \to T\cdot *F$ 는 `*` 를 기대 → `*` 열에 `s7`
+
+`*` 는 $\mathrm{FOLLOW}(E)$ 에 **없으므로** 충돌하지 않는다.
+바로 이것이 14.1절 9행의 "이동을 택한다"를 만들어 낸다.
+
+:::tip[연산자 우선순위가 표에 새겨졌다]
+상태 9는 $\{E \to E+T\cdot,\ T \to T\cdot *F\}$ 다.
+`*` 를 보면 `s7`(이동), `+`나 `)`나 `$`를 보면 `r1`(축약).
+
+문법을 $E/T/F$ 로 계층화한 결과가
+**표의 한 행**에 그대로 나타난 것이다.
+:::
+
+---
+
+## 14.5 직접 돌려 보기
+
+<LRParser
+  grammar={exprGrammarLR}
+  table={exprSLRTable}
+  defaultInput="id + id * id"
+  samples={['id', 'id + id', 'id + id * id', 'id * id + id', '( id + id ) * id', 'id +']}
+  title="SLR(1) 파서 — 식 문법"
+/>
+
+:::tip[확인할 것]
+1. **상태 9에서 `*` 를 만나는 순간** — `id + id * id` 를 끝까지 돌려 보면
+   스택이 `0 E 1 + 6 T 9` 이고 입력이 `* id $` 인 지점이 나온다.
+   여기서 `s7`(이동)을 택한다. 14.1절 9행이 이것이다.
+
+2. **축약 순서** — `r6 r4 r2 r6 r4 r6 r3 r1`.
+   $T \to T*F$(r3)가 $E \to E+T$(r1)보다 **먼저** 나온다.
+   곱셈이 먼저 묶인다는 뜻이다.
+
+3. **역순으로 읽으면 우측 유도** — 하단에 표시된 순서가
+   $E \Rightarrow_{rm} E+T \Rightarrow_{rm} E+T*F \Rightarrow_{rm} \cdots$ 다.
+
+4. **오류** — `id +` 를 넣으면 상태 6에서 `$` 를 만나
+   `ACTION[6, $]` 가 비어 있다는 오류가 난다.
+   기대하는 토큰 목록도 함께 나온다 — 좋은 오류 메시지의 재료다.
+:::
+
+:::note[이 표는 기계로 검증했다]
+위 표가 정확한지는 눈으로만 확인하지 않았다.
+`site/src/components/parsing/simulate.test.ts` 에서
+올바른 입력 12개가 수락되고 잘못된 입력 8개가 거부되는지,
+그리고 `id + id * id` 의 축약 순서가 `[6,4,2,6,4,6,3,1]` 인지를
+테스트로 확인한다.
+
+```bash
+cd site && bun test
+```
+:::
+
+---
+
+## 14.6 충돌
+
+표의 한 칸에 액션이 둘 이상 들어가면 **충돌(conflict)** 이다.
+
+### shift/reduce 충돌
+
+같은 칸에 이동과 축약이 모두 들어간다.
+
+**dangling else** 가 대표적이다.
+
+$$
+S \to \mathbf{if}\ E\ \mathbf{then}\ S \cdot \mid \mathbf{if}\ E\ \mathbf{then}\ S \cdot \mathbf{else}\ S
+$$
+
+`else` 를 보았을 때
+
+- 첫 항목이 완결이므로 **축약** 가능 (else 없는 if로 끝냄)
+- 둘째 항목이 `else` 를 기대하므로 **이동** 가능
+
+`else` $\in \mathrm{FOLLOW}(S)$ 이므로 충돌한다.
+
+:::tip[yacc의 기본 해결책]
+**충돌 시 이동을 택한다.**
+그러면 `else` 가 가장 가까운 `if` 에 붙는다 — 우리가 원하는 결과다.
+
+그래서 dangling else 는 실무에서 **경고 하나로 넘어가는 것이 관례**다.
+`%expect 1` 로 "이 충돌 1개는 알고 있다"고 선언해 둘 수 있다.
+:::
+
+### reduce/reduce 충돌
+
+같은 칸에 축약이 둘 이상 들어간다. **거의 항상 문법의 진짜 버그**다.
+
+$$
+\begin{aligned}
+S &\to a\,A\,d \mid b\,B\,d \mid a\,B\,e \mid b\,A\,e \\
+A &\to c \\
+B &\to c
+\end{aligned}
+$$
+
+`c` 를 보고 $A \to c$ 인지 $B \to c$ 인지 결정해야 하는데,
+그것은 맨 앞이 `a` 였는지 `b` 였는지에 달렸다 —
+**LR(0) 상태만으로는 그 정보가 없다.**
+
+yacc는 **먼저 쓰인 규칙**을 택하고 경고한다.
+[lex의 규칙 우선순위](/docs/lex/lex-input-and-parsing#81-두-가지-명확화-규칙)와 같은 방식이다.
+
+---
+
+## 14.7 LR(1)과 LALR(1)
+
+SLR의 약점은 FOLLOW 집합이 **너무 뭉뚱그려져 있다**는 것이다.
+"$A$ 뒤에 올 수 있는 것" 전부를 쓰는데,
+**지금 이 상태에서** 실제로 뒤따를 수 있는 것은 그보다 좁을 수 있다.
+
+### SLR이 실패하는 예
+
+$$
+\begin{aligned}
+S' &\to S \\
+S &\to L = R \mid R \\
+L &\to *\,R \mid \mathbf{id} \\
+R &\to L
+\end{aligned}
+$$
+
+(C의 포인터 대입 `*p = q` 를 모형화한 것이다.)
+
+상태 $I_2 = \{S \to L\cdot = R,\ R \to L\cdot\}$ 에서 `=` 를 보면
+
+- $S \to L\cdot = R$ 로 **이동** 가능
+- $R \to L\cdot$ 는 완결이고 `=` $\in \mathrm{FOLLOW}(R)$ 이므로 **축약** 가능
+
+충돌이다. 그런데 **실제로는 축약이 절대 옳지 않다.**
+$R$ 뒤에 `=` 가 오는 우측 문장 형태는 존재하지 않는다.
+FOLLOW가 너무 넓게 잡은 것이다.
+
+### LR(1) 항목
+
+해결책은 항목에 **lookahead 를 붙이는 것**이다.
+
+$$
+[A \to \alpha \cdot \beta,\ a]
+$$
+
+"이 규칙으로 축약하는 것은 다음 토큰이 $a$ 일 때만"이라는 뜻이다.
+
+CLOSURE 도 바뀐다. $[A \to \alpha \cdot B\beta,\ a]$ 로부터
+$B \to \gamma$ 에 대해
+
+$$
+[B \to \cdot\gamma,\ b] \quad \text{for each } b \in \mathrm{FIRST}(\beta a)
+$$
+
+를 추가한다. **$\beta$ 다음에 $a$ 가 온다**는 문맥을 정확히 반영한다.
+
+위 예에서 $R \to L\cdot$ 의 lookahead 는 `$` 뿐이므로 `=` 와 충돌하지 않는다.
+
+:::caution[LR(1)의 대가는 상태 수다]
+같은 코어(항목 집합의 LR(0) 부분)를 가진 상태가
+lookahead 만 달라서 여러 개로 쪼개진다.
+
+전형적인 프로그래밍 언어에서
+LR(0)/SLR/LALR 상태가 수백 개일 때 LR(1) 상태는 **수천 개**가 된다.
+1965년의 컴퓨터로는 감당할 수 없는 크기였다.
+:::
+
+### LALR(1)
+
+DeRemer의 아이디어(1969): **코어가 같은 LR(1) 상태들을 병합한다.**
+
+$$
+[A \to \alpha\cdot\beta,\ a] \text{ 와 } [A \to \alpha\cdot\beta,\ b]
+\;\longrightarrow\;
+[A \to \alpha\cdot\beta,\ \{a, b\}]
+$$
+
+- 상태 수는 **LR(0)과 같다** (표가 작다)
+- lookahead 는 SLR 보다 정확하다
+- 위의 `*p = q` 예제도 해결된다
+
+:::danger[LALR 병합의 부작용]
+병합으로 **원래 없던 reduce/reduce 충돌이 생길 수 있다.**
+
+두 상태가 각각
+$\{[A \to \alpha\cdot, a],\ [B \to \beta\cdot, b]\}$ 와
+$\{[A \to \alpha\cdot, b],\ [B \to \beta\cdot, a]\}$ 라면,
+각각은 충돌이 없다. 그런데 병합하면
+$\{[A \to \alpha\cdot, \{a,b\}],\ [B \to \beta\cdot, \{a,b\}]\}$ 가 되어
+`a`, `b` 둘 다에서 축약이 겹친다.
+
+**shift/reduce 충돌은 새로 생기지 않는다.**
+이동 액션은 코어만으로 결정되므로 lookahead 병합과 무관하기 때문이다.
+
+또 하나의 성질: LALR 파서는 잘못된 입력에 대해
+**LR(1) 파서보다 늦게** 오류를 발견할 수 있다
+(몇 번의 불필요한 축약을 더 한다). 다만 **잘못된 토큰을 이동하지는 않는다.**
+:::
+
+### 네 가지 비교
+
+| | 상태 수 | lookahead | 처리 가능 문법 |
+|---|---|---|---|
+| LR(0) | 적음 | 없음 | 아주 좁음 |
+| **SLR(1)** | LR(0)과 같음 | FOLLOW(A) | 좁음 |
+| **LALR(1)** | LR(0)과 같음 | 상태별 정확한 집합 | 실용적으로 충분 |
+| LR(1) | 많음 (수 배) | 완전히 정확 | DCFL 전체 |
+
+$$
+\text{LR(0)} \subsetneq \text{SLR(1)} \subsetneq \text{LALR(1)} \subsetneq \text{LR(1)}
+$$
+
+**yacc와 bison의 기본은 LALR(1)** 이다.
+
+:::tip[bison으로 직접 확인하기]
+```bash
+bison -v calc.y      # calc.output 생성
+```
+`calc.output` 에는 **모든 상태의 항목 집합**과 액션이 그대로 적혀 있다.
+이 장에서 손으로 만든 $I_0 \sim I_{11}$ 과 같은 것이다.
+
+```
+State 2
+
+    2 E: T .
+    3 T: T . '*' F
+
+    '*'  shift, and go to state 7
+
+    $default  reduce using rule 2 (E)
+```
+
+`$default` 는 bison 의 표 압축이다.
+FOLLOW 집합의 각 열에 같은 축약을 반복해 넣는 대신
+"기본값"으로 한 번만 적는다.
+:::
+
+---
+
+## 요약
+
+- **LR(k)** = Left-to-right 스캔 + Rightmost derivation **in reverse**.
+- 동작은 **이동**과 **축약** 둘뿐. 핵심 질문은 "언제 축약할 것인가".
+- **핸들**은 지금 축약해야 할 부분이고, **항상 스택 맨 위**에 나타난다.
+- **LR(0) 항목**은 규칙에 점을 찍은 것.
+  점 왼쪽 = 스택에 쌓인 것, 점 오른쪽 = 기대하는 것.
+- **CLOSURE** 와 **GOTO** 로 정준 항목 집합을 만들면,
+  그것이 **실행 가능한 접두사를 인식하는 DFA** 가 된다.
+  실행 가능한 접두사의 집합이 **정규언어**라는 것이 LR 파싱의 이론적 기반이다.
+- **SLR(1)** — 축약 결정에 FOLLOW 를 쓴다. 단순하지만 너무 넓다.
+- **LR(1)** — 항목에 lookahead 를 붙인다. 정확하지만 상태가 폭발한다.
+- **LALR(1)** — 코어가 같은 LR(1) 상태를 병합. 표는 LR(0) 크기,
+  정확도는 SLR 보다 높다. **yacc/bison의 기본**.
+  대가로 **reduce/reduce 충돌이 새로 생길 수 있다**
+  (shift/reduce 는 생기지 않는다).
+- **shift/reduce 충돌** — yacc 는 이동을 택한다. dangling else 에 딱 맞는다.
+  **reduce/reduce 충돌** — 거의 항상 문법의 버그다.
+
+## 확인 문제
+
+1. 다음 문법의 정준 LR(0) 항목 집합을 모두 구하라.
+   $$S' \to S, \quad S \to (\,S\,) \mid a$$
+2. 위 문법의 SLR(1) 표를 만들고, `( ( a ) )` 를 파싱하라.
+3. 시뮬레이터에 `( id + id ) * id` 를 넣고,
+   상태 4와 8이 언제 나타나는지 관찰하라.
+   상태 8($F \to (E\cdot)$)의 역할은 무엇인가?
+4. `id * id + id` 와 `id + id * id` 의 축약 순서를 비교하라.
+   왜 다른가?
+5. `*p = q` 예제에서 SLR 이 실패하고 LALR 이 성공하는 이유를
+   lookahead 집합의 차이로 설명하라.
+6. LALR 병합이 **shift/reduce** 충돌을 새로 만들지 않는 이유를 설명하라.
+7. `bison -v` 로 `.output` 을 뽑아, 이 장에서 손으로 만든
+   $I_0 \sim I_{11}$ 과 대조하라.
+
+---
+
+다음 장에서는 이 표를 **실제 C 코드**로 만들어 본다.

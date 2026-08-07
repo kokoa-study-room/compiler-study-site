@@ -1,0 +1,464 @@
+---
+id: syntax-analysis
+title: 12. 구문 분석
+sidebar_label: 12. 구문 분석
+sidebar_position: 3
+description: 하향식과 상향식 파싱의 대비, FIRST/FOLLOW 계산, 그리고 파서가 만드는 것(파스 트리와 AST)과 오류 복구.
+---
+
+import FirstFollow from '@site/src/components/parsing/FirstFollow';
+import {exprGrammar, exprGrammarLL} from '@site/src/components/parsing/grammars';
+
+# 12. 구문 분석
+
+**구문 분석(syntax analysis)**, 즉 **파싱(parsing)** 은
+토큰 스트림을 받아 두 가지를 하는 일이다.
+
+1. 이 토큰 열이 문법에 맞는지 **판정**한다
+2. 맞다면 그 **구조**(파스 트리 또는 AST)를 만든다
+
+이 장에서는 파싱 전략의 큰 두 갈래를 대비하고,
+두 갈래 모두가 쓰는 도구인 **FIRST/FOLLOW 집합**을 세운다.
+
+---
+
+## 12.1 두 가지 전략
+
+[2장](/docs/foundations/language-and-grammar#좌측-유도와-우측-유도)에서
+좌측 유도와 우측 유도를 구분했다. 파싱 전략은 그 둘에 정확히 대응한다.
+
+```mermaid
+flowchart TB
+    subgraph TD["하향식 (Top-Down)"]
+      direction TB
+      A1["시작 심볼 S 에서 출발"] --> A2["규칙을 골라 전개"] --> A3["입력과 맞는 잎에 도달"]
+      A4["= 좌측 유도를 왼쪽에서 오른쪽으로 재현"]
+    end
+    subgraph BU["상향식 (Bottom-Up)"]
+      direction TB
+      B1["입력 토큰에서 출발"] --> B2["우변을 찾아 좌변으로 축약"] --> B3["시작 심볼 S 에 도달"]
+      B4["= 우측 유도를 거꾸로 재현"]
+    end
+```
+
+### 같은 문장, 두 방향
+
+문법:
+
+$$
+\begin{aligned}
+E &\to E + T \mid T, \quad T \to T * F \mid F, \quad F \to (\,E\,) \mid \mathbf{id}
+\end{aligned}
+$$
+
+입력: `id + id * id`
+
+**하향식** — 트리를 위에서 아래로 그려 나간다
+
+```
+E
+E + T                  E → E + T 선택
+T + T                  E → T
+F + T                  T → F
+id + T                 F → id ✓ 입력의 id 와 맞음
+id + T * F             T → T * F
+id + F * F             T → F
+id + id * F            F → id ✓
+id + id * id           F → id ✓
+```
+
+**상향식** — 트리를 아래에서 위로 쌓는다
+
+```
+id + id * id
+F  + id * id           F → id 축약
+T  + id * id           T → F
+E  + id * id           E → T
+E  + F  * id           F → id
+E  + T  * id           T → F
+E  + T  * F            F → id
+E  + T                 T → T * F
+E                      E → E + T  ✓ 시작 심볼 도달
+```
+
+:::info[상향식 축약 순서를 뒤집으면 우측 유도가 된다]
+위 상향식 축약을 아래에서 위로 읽으면
+
+$$
+E \Rightarrow_{rm} E + T \Rightarrow_{rm} E + T * F \Rightarrow_{rm} E + T * \mathbf{id} \Rightarrow_{rm} \cdots
+$$
+
+정확히 **우측 유도의 역순**이다.
+그래서 LR 파싱을 "reverse rightmost derivation"이라 부른다.
+:::
+
+### 두 전략의 성격
+
+| | 하향식 (LL) | 상향식 (LR) |
+|---|---|---|
+| 유도 | 좌측 유도 | 우측 유도의 역 |
+| 진행 | 예측(predict) → 매치 | 이동(shift) → 축약(reduce) |
+| 결정 시점 | 규칙을 **미리** 골라야 한다 | 우변을 **다 본 뒤** 결정한다 |
+| 좌재귀 | ❌ 무한 루프 | ✅ 문제없음 |
+| 문법 부류 | LL(1) ⊊ LR(1) | 더 넓다 |
+| 사람이 읽기 | 쉽다 (코드 = 문법) | 어렵다 (표 구동) |
+| 오류 메시지 | 좋다 (문맥을 안다) | 상대적으로 나쁘다 |
+| 손코딩 | 쉽다 (재귀 하강) | 사실상 불가능 |
+| 대표 도구 | ANTLR, 손코딩 | yacc, bison |
+
+:::tip[결정 시점의 차이가 핵심이다]
+하향식은 `E`를 만나 `E → E + T`와 `E → T` 중 하나를 **먼저** 골라야 한다.
+아직 아무것도 안 봤는데 말이다. 그래서 앞을 내다보는(lookahead) 정보가 필요하다.
+
+상향식은 우변 전체가 스택에 쌓일 때까지 **기다린다**.
+정보가 훨씬 많이 모인 뒤에 결정하므로 더 많은 문법을 다룰 수 있다.
+
+"결정을 늦출수록 강해진다" — LR이 LL보다 강한 이유다.
+:::
+
+---
+
+## 12.2 파서가 만드는 것
+
+### 파스 트리 vs AST
+
+**파스 트리(구체 구문 트리, CST)** — 문법의 모든 세부를 담는다
+
+```mermaid
+flowchart TB
+    E0(("E")) --> E1(("E"))
+    E0 --> P["+"]
+    E0 --> T1(("T"))
+    E1 --> T2(("T"))
+    T2 --> F1(("F"))
+    F1 --> I1["id"]
+    T1 --> T3(("T"))
+    T1 --> M["*"]
+    T1 --> F2(("F"))
+    T3 --> F3(("F"))
+    F3 --> I2["id"]
+    F2 --> I3["id"]
+```
+
+**AST(추상 구문 트리)** — 의미에 필요한 것만 남긴다
+
+```mermaid
+flowchart TB
+    A["+"] --> B["id"]
+    A --> C["*"]
+    C --> D["id"]
+    C --> E["id"]
+```
+
+| | 파스 트리 | AST |
+|---|---|---|
+| 노드 | 모든 넌터미널 | 의미 있는 연산만 |
+| 괄호 | 노드로 남는다 | 사라진다 (구조에 흡수) |
+| 단일 생성 규칙 $T \to F$ | 노드가 생긴다 | 건너뛴다 |
+| 크기 | 크다 | 작다 |
+| 쓰임 | 리팩터링 도구, 포매터 | 컴파일러 백엔드 |
+
+:::note[tree-sitter는 파스 트리를 만든다]
+에디터의 문법 하이라이터나 코드 포매터는 **원본 텍스트를 그대로 복원**해야 하므로
+공백과 괄호까지 담은 구체 구문 트리가 필요하다.
+컴파일러는 그럴 필요가 없으므로 AST를 쓴다.
+:::
+
+실무에서 파서는 **파스 트리를 실제로 만들지 않는 경우가 많다.**
+축약할 때마다 액션을 실행해 곧바로 AST를 만들거나,
+아예 코드를 뱉어 버린다. 파스 트리는 개념적인 것이다.
+
+---
+
+## 12.3 FIRST 집합
+
+파서가 "다음에 어떤 규칙을 쓸까"를 결정하려면
+**각 심볼 열이 어떤 터미널로 시작할 수 있는지**를 알아야 한다.
+
+:::info[정의 — FIRST]
+
+심볼 열 $\alpha$ 에 대해
+
+$$
+\mathrm{FIRST}(\alpha) = \{\, a \in V_T \mid \alpha \Rightarrow^* a\beta \,\}
+\;\cup\;
+\{\varepsilon \mid \alpha \Rightarrow^* \varepsilon\}
+$$
+
+즉 $\alpha$ 로부터 유도되는 스트링의 **첫 글자가 될 수 있는 터미널** 전부.
+$\alpha$ 가 $\varepsilon$ 을 유도할 수 있으면 $\varepsilon$ 도 포함한다.
+:::
+
+### 계산 규칙
+
+```
+FIRST(X) 를 모든 문법 심볼 X 에 대해, 변화가 없을 때까지 반복:
+
+  1. X 가 터미널이면            FIRST(X) = {X}
+  2. X → ε 규칙이 있으면        FIRST(X) 에 ε 추가
+  3. X → Y₁ Y₂ … Yₖ 규칙에 대해:
+       FIRST(Y₁) 의 ε 아닌 것을 FIRST(X) 에 추가
+       ε ∈ FIRST(Y₁) 이면 FIRST(Y₂) 의 ε 아닌 것도 추가
+       …
+       ε 가 FIRST(Y₁)…FIRST(Yₖ) 전부에 있으면 ε 도 추가
+```
+
+심볼 **열**의 FIRST 도 같은 방식으로 확장한다.
+
+$$
+\mathrm{FIRST}(X_1X_2\cdots X_n)
+$$
+
+는 $X_1$ 부터 훑되, $\varepsilon$ 을 포함하는 동안만 다음으로 넘어간다.
+
+:::caution[반복이 필요한 이유]
+$A \to B c$, $B \to A d \mid e$ 같은 문법을 생각해 보자.
+FIRST(A)를 알려면 FIRST(B)가 필요하고, FIRST(B)를 알려면 FIRST(A)가 필요하다.
+
+한 번 훑는 것으로는 부족하고, **더 이상 아무것도 추가되지 않을 때까지**
+반복해야 한다. 이런 계산을 **고정점 계산(fixed-point computation)** 이라 한다.
+데이터 흐름 분석 등 컴파일러 곳곳에서 같은 패턴이 나온다.
+:::
+
+---
+
+## 12.4 FOLLOW 집합
+
+$A \to \varepsilon$ 을 적용할지 결정하려면,
+"$A$ **뒤에** 무엇이 올 수 있는가"를 알아야 한다.
+
+:::info[정의 — FOLLOW]
+
+넌터미널 $A$ 에 대해
+
+$$
+\mathrm{FOLLOW}(A) = \{\, a \in V_T \mid S \Rightarrow^* \alpha A a \beta \,\}
+$$
+
+즉 어떤 문장 형태에서 $A$ 바로 오른쪽에 나타날 수 있는 터미널 전부.
+$A$ 가 문장의 맨 끝에 올 수 있으면 입력 끝 표시 `$` 도 포함한다.
+:::
+
+### 계산 규칙
+
+```
+FOLLOW(S) 에 $ 를 넣고, 변화가 없을 때까지 반복:
+
+  1. A → α B β 규칙에 대해:
+       FIRST(β) 의 ε 아닌 것을 FOLLOW(B) 에 추가
+  2. A → α B  규칙 (β 가 비었거나 ε ∈ FIRST(β)) 에 대해:
+       FOLLOW(A) 전체를 FOLLOW(B) 에 추가
+```
+
+규칙 2의 직관: $A$ 뒤에 올 수 있는 것은 곧 $B$ 뒤에도 올 수 있다.
+$B$ 가 $A$ 의 마지막 부분이기 때문이다.
+
+:::caution[FOLLOW에는 ε 이 들어가지 않는다]
+FIRST와 달리 FOLLOW는 **실제로 뒤따르는 터미널**의 집합이다.
+"아무것도 안 온다"는 경우는 $\varepsilon$ 이 아니라 `$` 로 표현한다.
+:::
+
+---
+
+## 12.5 직접 계산해 보기
+
+라운드를 하나씩 진행하며 집합이 자라는 것을 보자.
+
+### 좌재귀 문법
+
+<FirstFollow
+  grammar={exprGrammar}
+  title="FIRST / FOLLOW — 좌재귀 식 문법 (LR용)"
+/>
+
+**손으로 확인.**
+
+$\mathrm{FIRST}(F)$ 부터 시작한다. $F \to (\,E\,) \mid \mathbf{id}$ 이므로
+$\mathrm{FIRST}(F) = \{\,(\,,\ \mathbf{id}\}$.
+
+$T \to T * F \mid F$ 에서 $T \to F$ 를 통해 $\mathrm{FIRST}(F)$ 가 들어온다.
+$T \to T*F$ 는 자기 자신이므로 새로 주는 것이 없다.
+따라서 $\mathrm{FIRST}(T) = \{\,(\,,\ \mathbf{id}\}$.
+
+같은 논리로 $\mathrm{FIRST}(E) = \{\,(\,,\ \mathbf{id}\}$.
+
+**세 넌터미널의 FIRST가 모두 같다.** 이것이 좌재귀 문법의 특징이고,
+바로 그래서 **하향식으로는 이 문법을 쓸 수 없다** — 첫 토큰만 보고는
+$E \to E+T$ 와 $E \to T$ 를 구별할 수 없기 때문이다.
+
+FOLLOW는 이렇게 나온다.
+
+| 넌터미널 | FOLLOW | 근거 |
+|---|---|---|
+| $E$ | `{ +, ), $ }` | $E' \to E$ 에서 `$`, $F \to (E)$ 에서 `)`, $E \to E+T$ 에서 `+` |
+| $T$ | `{ +, *, ), $ }` | $T \to T*F$ 에서 `*` 추가, $E \to E+T$ 로 FOLLOW($E$) 상속 |
+| $F$ | `{ +, *, ), $ }` | $T \to F$ 로 FOLLOW($T$) 상속 |
+
+:::tip[이 FOLLOW 집합을 기억해 두자]
+[14장 SLR 표 만들기](/docs/parsing/lr-parsing)에서 축약 액션을
+**FOLLOW 집합의 열에만** 넣게 된다. 그때 이 값들을 그대로 쓴다.
+:::
+
+### 좌재귀를 제거한 문법
+
+<FirstFollow
+  grammar={exprGrammarLL}
+  title="FIRST / FOLLOW — 좌재귀 제거 후 (LL용)"
+/>
+
+핵심 차이는 $E'$ 과 $T'$ 이다.
+
+$$
+\mathrm{FIRST}(E') = \{+,\ \varepsilon\}, \qquad \mathrm{FIRST}(T') = \{*,\ \varepsilon\}
+$$
+
+$\varepsilon$ 이 들어 있으므로 **FOLLOW가 결정에 관여**하게 된다.
+`+`를 보면 $E' \to +TE'$, 그 밖에 FOLLOW($E'$)의 원소를 보면 $E' \to \varepsilon$.
+
+$\mathrm{FOLLOW}(E')$ = `{ ), $ }`
+
+`+` 와 `)`, `$` 가 겹치지 않으므로 **결정이 가능하다**.
+이것이 [다음 장](/docs/parsing/ll-parsing)에서 만들 LL(1) 표의 근거다.
+
+:::note["다음 라운드" 버튼을 눌러 보자]
+FIRST가 한 번에 확정되지 않는 것을 볼 수 있다.
+$\mathrm{FIRST}(E)$ 를 알려면 $\mathrm{FIRST}(T)$ 가, 그것을 알려면
+$\mathrm{FIRST}(F)$ 가 필요하다. 규칙을 적는 순서에 따라
+두세 라운드가 필요하다.
+:::
+
+---
+
+## 12.6 구문 오류 처리
+
+파서는 오류를 만났을 때 그냥 멈추면 안 된다.
+**한 번의 컴파일에서 가능한 많은 오류를 보고**해야 실용적이다.
+
+### 오류 복구 전략
+
+**① 패닉 모드(panic mode)**
+
+오류가 나면, 미리 정한 **동기화 토큰(synchronizing token)** 이 나올 때까지
+입력을 버린다. C에서는 `;`, `}` 가 전형적이다.
+
+```
+error: expected ';' before '}'
+     ... 여기부터 ';' 나올 때까지 버림 ...
+```
+
+- 장점: 간단하고, 무한 루프가 없음이 보장된다
+- 단점: 오류 하나가 넓은 영역을 삼킬 수 있다
+- **yacc의 `error` 토큰이 이 방식이다**
+
+**② 구문 수준 복구(phrase-level recovery)**
+
+지역적으로 토큰을 삽입·삭제·교체해 파싱을 이어 간다.
+
+```
+error: missing ')' — 여기에 ')' 가 있다고 가정하고 계속
+```
+
+- 장점: 오류 하나가 하나로 보고된다
+- 단점: 잘못 추측하면 **연쇄 오류(cascading errors)** 가 난다
+
+**③ 오류 생성 규칙(error production)**
+
+흔한 실수를 **문법에 직접 넣어 둔다**.
+
+```
+stmt : IF '(' expr ')' stmt
+     | IF expr stmt          { yyerror("if 조건에 괄호가 필요합니다"); }
+     ;
+```
+
+- 장점: 아주 구체적인 메시지를 줄 수 있다
+- 단점: 문법이 지저분해지고, 예상한 실수만 잡는다
+
+**④ 전역 정정(global correction)**
+
+최소 편집 거리로 올바른 프로그램을 찾는다. 이론적으로 최적이지만
+비용이 커서 실무에서는 거의 쓰이지 않는다.
+
+:::tip[현대 컴파일러의 접근]
+Rust와 Elm이 "친절한 컴파일러"로 평가받는 이유는
+③ 오류 생성 규칙을 **아주 많이** 넣어 두었기 때문이다.
+
+```
+error: expected one of `,`, `:`, or `}`, found `;`
+  --> src/main.rs:3:15
+   |
+ 3 |     let x = Foo { a: 1; b: 2 };
+   |             ---        ^ expected one of `,`, `:`, or `}`
+   |             |
+   |             while parsing this struct
+help: try using `,` instead of `;`
+```
+
+"struct를 파싱하는 중"이라는 문맥까지 보여 준다.
+이런 메시지는 문법에서 저절로 나오지 않는다 —
+**흔한 실수 하나하나를 사람이 넣은 것**이다.
+
+최근 연구인 PEG의 labeled failure 도 같은 발상이다.
+실패 지점에 레이블을 붙이고 레이블마다 복구 표현식을 연결한다.
+[최신 경향](/docs/modern/trends)에서 다룬다.
+:::
+
+### 오류 위치의 문제
+
+```c
+int f() {
+    return 1;
+        /* 여기서 '}' 를 빠뜨렸다 */
+
+int g() { return 2; }
+```
+
+파서는 `int g()` 를 만나서야 이상하다는 것을 안다.
+**실제 오류 위치(빠진 `}`)와 발견 위치가 멀다.**
+
+그래서 좋은 컴파일러는 여는 괄호의 위치를 기억해 두었다가
+"3행에서 열린 `{` 가 닫히지 않았습니다"처럼 보고한다.
+[9장에서 본](/docs/lex/writing-lex-files#95-eof-처리)
+`cmt_start` 와 같은 발상이다.
+
+---
+
+## 요약
+
+- 파싱은 **판정**과 **구조 생성** 두 가지를 한다.
+- **하향식(LL)** 은 좌측 유도를 재현하고, 규칙을 **미리** 골라야 한다.
+  **상향식(LR)** 은 우측 유도의 역을 재현하고, 우변을 **다 본 뒤** 결정한다.
+  **결정을 늦출수록 강하다** — LR이 LL보다 넓은 문법을 받는 이유.
+- **파스 트리**는 문법의 모든 세부를, **AST**는 의미에 필요한 것만 담는다.
+  컴파일러는 보통 파스 트리를 실제로 만들지 않고 축약 시점에 AST를 만든다.
+- $\mathrm{FIRST}(\alpha)$ — $\alpha$ 가 유도하는 스트링의 첫 터미널 집합.
+  $\alpha \Rightarrow^* \varepsilon$ 이면 $\varepsilon$ 포함.
+- $\mathrm{FOLLOW}(A)$ — 어떤 문장 형태에서 $A$ 바로 뒤에 올 수 있는 터미널.
+  $\varepsilon$ 은 들어가지 않고, 대신 `$` 가 들어간다.
+- 둘 다 **고정점 계산**이다. 한 번 훑어서는 안 된다.
+- 좌재귀 식 문법은 $\mathrm{FIRST}(E) = \mathrm{FIRST}(T) = \mathrm{FIRST}(F)$ 라
+  하향식으로 결정할 수 없다. 그것이 좌재귀 제거의 이유다.
+- 오류 복구는 **패닉 모드**(yacc의 `error`), **구문 수준**,
+  **오류 생성 규칙**, 전역 정정 네 가지.
+  좋은 진단은 대개 오류 생성 규칙을 많이 넣은 결과다.
+
+## 확인 문제
+
+1. 다음 문법의 FIRST와 FOLLOW를 손으로 계산하고 위 도구와 비교하라.
+   $$S \to A B c, \quad A \to a \mid \varepsilon, \quad B \to b \mid \varepsilon$$
+2. FOLLOW에 $\varepsilon$ 이 들어가지 않는 이유를 정의로부터 설명하라.
+3. FIRST 계산에 반복이 필요한 문법의 예를 하나 만들어라.
+4. `id + id * id` 의 하향식·상향식 유도를 모두 손으로 적고,
+   같은 파스 트리에 도달하는지 확인하라.
+5. 다음 코드에서 파서가 오류를 **발견**하는 위치와
+   실제 오류 위치가 어떻게 다른지 설명하라.
+   ```c
+   if (x > 0 {
+       y = 1;
+   }
+   ```
+6. 패닉 모드 복구가 무한 루프에 빠지지 않음이 보장되는 이유는?
+
+---
+
+다음 장부터 두 전략을 각각 자세히 본다. 먼저 하향식이다.

@@ -1,0 +1,17 @@
+식: 1 + 2 * 3
+  → expr   (lookahead = number)
+    → term   (lookahead = number)
+      → factor   (lookahead = number)
+      ← factor
+    ← term
+    → term   (lookahead = number)
+      → factor   (lookahead = number)
+      ← factor
+      → factor   (lookahead = number)
+      ← factor
+    ← term
+  ← expr
+  AST: (+ 1 (* 2 3))
+  값: 7
+----
+모두 정상 처리

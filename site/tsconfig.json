@@ -6,7 +6,9 @@
   "compilerOptions": {
     "baseUrl": ".",
     "ignoreDeprecations": "6.0",
-    "strict": true
+    "strict": true,
+    // *.test.ts 는 `bun test` 로 돌린다. bun:test 모듈 타입을 위해 필요.
+    "types": ["@types/bun"]
   },
   "exclude": [".docusaurus", "build"]
 }

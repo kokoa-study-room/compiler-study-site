@@ -343,7 +343,7 @@ flex도 같은 발상을 쓴다. 생성된 코드에서 확인할 수 있다.
 ```bash
 cd examples/02-lex-tokenizer
 flex -o tokenizer.c tokenizer.l
-grep -n "YY_BUF_SIZE\|yy_n_chars\|YY_END_OF_BUFFER_CHAR\|yy_buffer_stack" tokenizer.c | head
+grep -n "YY_BUF_SIZE\lvert yy_n_chars \rvertYY_END_OF_BUFFER_CHAR\|yy_buffer_stack" tokenizer.c | head
 ```
 
 | 이름 | 역할 |

@@ -401,7 +401,7 @@ action = (yy_check[yy_base[state] + token] == state)
 ```bash
 cd examples/07-yacc-calc
 bison -d -o calc.tab.c calc.y
-grep -n "yypact\|yytable\|yycheck\|yydefact" calc.tab.c | head
+grep -n "yypact\lvert yytable \rvertyycheck\|yydefact" calc.tab.c | head
 ```
 `yypact`(행 오프셋), `yytable`(값), `yycheck`(검증), `yydefact`(기본 축약)
 네 배열이 보인다. 위 개념 그대로다.
@@ -899,7 +899,7 @@ yacc는 "문법이 안정적이고, 표를 자동 생성하고 싶을 때" 쓴�
 ```bash
 cd examples/07-yacc-calc
 bison -d -v -o calc.tab.c calc.y
-grep -n "yypact\|yytable\|yycheck\|yydefact\|yypgoto\|yydefgoto" calc.tab.c | head -20
+grep -n "yypact\lvert yytable \rvertyycheck\lvert yydefact \rvertyypgoto\|yydefgoto" calc.tab.c | head -20
 ```
 
 **네 배열의 역할**

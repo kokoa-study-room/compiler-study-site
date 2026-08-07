@@ -36,7 +36,7 @@ $$\text{정규 표현} \equiv \varepsilon\text{-NFA} \equiv \text{NFA} \equiv \t
 |---|---|---|
 | 정규 표현 → ε-NFA | Thompson 구성 | 상태 수 $\le 2n$, **선형** |
 | ε-NFA → DFA | 부분집합 구성 | 최악 $2^n$ |
-| DFA → 최소 DFA | 분할 정제 / Hopcroft | $O(n \log n \cdot \|\Sigma\|)$ |
+| DFA → 최소 DFA | 분할 정제 / Hopcroft | $O(n \log n \cdot \lvert \Sigma \rvert)$ |
 | DFA → 정규 표현 | 상태 소거 | 결과 크기 최악 지수 |
 | 정규 표현 → DFA | followpos (직행) | ε-NFA 생략 |
 

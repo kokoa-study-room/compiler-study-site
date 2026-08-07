@@ -91,7 +91,7 @@ flowchart LR
 | $\Sigma$ | 알파벳 — 기호(symbol)들의 유한 집합 |
 | $\varepsilon$ | 공 스트링(empty string), 길이 0 |
 | $\Sigma^*$ | $\Sigma$ 위의 모든 스트링의 집합 (클레이니 클로저) |
-| $\|w\|$ | 스트링 $w$의 길이 |
+| $\lvert w \rvert$ | 스트링 $w$의 길이 |
 | $L$ | 언어 — $\Sigma^*$의 부분집합 |
 | $G = (V_N, V_T, P, S)$ | 문법 — 넌터미널, 터미널, 생성 규칙, 시작 심볼 |
 | $A, B, C \dots$ | 넌터미널 (대문자) |

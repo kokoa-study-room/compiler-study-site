@@ -103,7 +103,7 @@ yacc의 `%union` 이 정확히 이것이다.
 | $A \subseteq B$ | 부분집합 | $A$ 의 모든 원소가 $B$ 에 있다 |
 | $A \subsetneq B$ | **진**부분집합 | 부분집합이면서 같지는 않다 |
 | $\emptyset$ | 공집합 | 원소가 하나도 없다 |
-| $\|A\|$ | 크기(cardinality) | 원소 개수 |
+| $\lvert A \rvert$ | 크기(cardinality) | 원소 개수 |
 | $A \times B$ | 곱집합 | 순서쌍 $(a, b)$ 전부 |
 | $2^A$ | **멱집합(power set)** | $A$ 의 **모든 부분집합**의 집합 |
 
@@ -143,7 +143,7 @@ C로 쓰면 `int delta(int state, char c)` 다.
 "$P$ 가 참이다"를 보이려고 **"$P$ 가 거짓이다"라고 가정**한 뒤
 모순을 이끌어낸다. 모순이 나오면 가정이 틀린 것이므로 $P$ 가 참이다.
 
-[3장의 펌핑 보조정리 증명](/docs/regular/regular-languages#증명-예제---an-bn-은-정규가-아니다)이
+[3장의 펌핑 보조정리 증명](/docs/regular/regular-languages#proof-anbn)이
 이 방식이다.
 "$\{a^nb^n\}$ 이 정규라고 가정" → 모순 → "정규가 아니다".
 

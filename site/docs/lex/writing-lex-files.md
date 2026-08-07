@@ -714,9 +714,9 @@ $$L = \{\ \texttt{/*}^n\ \texttt{*/}^n \mid n \geq 1\ \}$$
 **펌핑 보조정리로 정규가 아님을 보인다.**
 
 $L$ 이 정규라 가정하고 펌핑 길이를 $p$ 라 하자.
-$w = \texttt{/*}^p\,\texttt{*/}^p$ 를 택하면 $\|w\| \geq p$ 이므로 보조정리를 쓸 수 있다.
+$w = \texttt{/*}^p\,\texttt{*/}^p$ 를 택하면 $\lvert w \rvert \geq p$ 이므로 보조정리를 쓸 수 있다.
 
-$w = xyz$ 에서 $\|xy\| \leq p$ 이므로 $x, y$ 는 **앞쪽 `/*` 들 안에만** 있다.
+$w = xyz$ 에서 $\lvert xy \rvert \leq p$ 이므로 $x, y$ 는 **앞쪽 `/*` 들 안에만** 있다.
 $y = \texttt{/*}^t$ ($t \geq 1$) 라 하면
 
 $$xy^2z = \texttt{/*}^{p+t}\,\texttt{*/}^{p}$$

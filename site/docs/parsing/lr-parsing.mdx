@@ -700,17 +700,444 @@ FOLLOW 집합의 각 열에 같은 축약을 반복해 넣는 대신
 
 1. 다음 문법의 정준 LR(0) 항목 집합을 모두 구하라.
    $$S' \to S, \quad S \to (\,S\,) \mid a$$
+
+<details>
+<summary>풀이</summary>
+
+**규칙 번호**
+
+| # | 규칙 |
+|---|---|
+| 0 | $S' \to S$ |
+| 1 | $S \to (\,S\,)$ |
+| 2 | $S \to a$ |
+
+**$I_0$ 부터**
+
+$\mathrm{CLOSURE}(\{S' \to \cdot S\})$ 를 계산한다.
+점 오른쪽이 넌터미널 $S$ 이므로 $S$ 의 모든 규칙을 시작 항목으로 추가.
+
+```
+I0 = { S' → · S
+       S  → · ( S )
+       S  → · a }
+```
+
+$S \to \cdot(S)$ 와 $S \to \cdot a$ 의 점 오른쪽은 터미널이므로 더 추가할 것이 없다.
+
+**GOTO 계산**
+
+| GOTO | 점을 옮긴 항목 | CLOSURE 후 | 이름 |
+|---|---|---|---|
+| $(I_0, S)$ | $S' \to S\cdot$ | 그대로 | **I1** |
+| $(I_0, \texttt{(})$ | $S \to (\cdot S)$ | + $S$ 규칙들 | **I2** |
+| $(I_0, a)$ | $S \to a\cdot$ | 그대로 | **I3** |
+
+```
+I1 = { S' → S · }
+I2 = { S → ( · S )
+       S → · ( S )
+       S → · a }
+I3 = { S → a · }
+```
+
+$I_2$ 에서 계속:
+
+| GOTO | 결과 | 이름 |
+|---|---|---|
+| $(I_2, S)$ | $S \to (S\cdot)$ | **I4** |
+| $(I_2, \texttt{(})$ | $I_2$ 와 같다 | (재사용) |
+| $(I_2, a)$ | $I_3$ 과 같다 | (재사용) |
+| $(I_4, \texttt{)})$ | $S \to (S)\cdot$ | **I5** |
+
+```
+I4 = { S → ( S · ) }
+I5 = { S → ( S ) · }
+```
+
+**총 6개 상태.**
+
+```mermaid
+flowchart LR
+    I0(("I0")) -->|S| I1(("I1"))
+    I0 -->|"("| I2(("I2"))
+    I0 -->|a| I3(("I3"))
+    I2 -->|S| I4(("I4"))
+    I2 -->|"("| I2
+    I2 -->|a| I3
+    I4 -->|")"| I5(("I5"))
+```
+
+$I_2$ 가 **자기 자신으로** 가는 간선이 있다는 데 주목하자.
+`((` 처럼 괄호가 중첩되면 같은 상태에 머문다 —
+**깊이는 스택이 기억**한다.
+
+</details>
+
 2. 위 문법의 SLR(1) 표를 만들고, `( ( a ) )` 를 파싱하라.
+
+<details>
+<summary>풀이</summary>
+
+**FOLLOW 계산**
+
+$\mathrm{FOLLOW}(S) = \{\ \texttt{)},\ \$\ \}$
+
+- $S' \to S$ 에서 → `$`
+- $S \to (S)$ 에서 $S$ 뒤에 `)` → `)`
+
+**SLR(1) 표**
+
+| 상태 | `(` | `)` | `a` | `$` | | `S` |
+|---|---|---|---|---|---|---|
+| 0 | s2 | | s3 | | | 1 |
+| 1 | | | | **acc** | | |
+| 2 | s2 | | s3 | | | 4 |
+| 3 | | r2 | | r2 | | |
+| 4 | | s5 | | | | |
+| 5 | | r1 | | r1 | | |
+
+- 상태 3 ($S \to a\cdot$) — 완결 항목 → $\mathrm{FOLLOW}(S) = \{),\$\}$ 열에 `r2`
+- 상태 5 ($S \to (S)\cdot$) — 완결 항목 → 같은 열에 `r1`
+
+**파싱 `( ( a ) )`**
+
+| # | 스택 | 입력 | ACTION | 동작 |
+|---|---|---|---|---|
+| 1 | `0` | `( ( a ) ) $` | s2 | 이동 |
+| 2 | `0 ( 2` | `( a ) ) $` | s2 | 이동 |
+| 3 | `0 ( 2 ( 2` | `a ) ) $` | s3 | 이동 |
+| 4 | `0 ( 2 ( 2 a 3` | `) ) $` | r2 | 축약 $S \to a$. 1칸 팝 → 상태 2, GOTO[2,S]=4 |
+| 5 | `0 ( 2 ( 2 S 4` | `) ) $` | s5 | 이동 |
+| 6 | `0 ( 2 ( 2 S 4 ) 5` | `) $` | r1 | 축약 $S \to (S)$. 3칸 팝 → 상태 2, GOTO[2,S]=4 |
+| 7 | `0 ( 2 S 4` | `) $` | s5 | 이동 |
+| 8 | `0 ( 2 S 4 ) 5` | `$` | r1 | 축약 $S \to (S)$. 3칸 팝 → 상태 0, GOTO[0,S]=1 |
+| 9 | `0 S 1` | `$` | **acc** | **수락** ✅ |
+
+**관찰.** 4행에서 안쪽 `a` 를 $S$ 로 축약한 뒤,
+6행과 8행에서 **안쪽 괄호부터** 차례로 축약한다.
+스택의 깊이가 괄호 중첩 깊이를 그대로 기억하고 있다 —
+[10장의 PDA](/docs/parsing/context-free-grammar#103-푸시다운-오토마타)가 하는 일 그대로다.
+
+</details>
+
 3. 시뮬레이터에 `( id + id ) * id` 를 넣고,
    상태 4와 8이 언제 나타나는지 관찰하라.
    상태 8($F \to (E\cdot)$)의 역할은 무엇인가?
+
+<details>
+<summary>풀이</summary>
+
+**상태 4가 나타나는 시점:** `(` 를 이동한 직후.
+
+$$I_4 = \{F \to (\cdot E),\ E \to \cdot E{+}T,\ E \to \cdot T,\ T \to \cdot T{*}F,\ T \to \cdot F,\ F \to \cdot(E),\ F \to \cdot \mathbf{id}\}$$
+
+[15.3절에서 본 대로](#goto-를-손으로-계산해-보자) $I_0$ 와 거의 같은 모양이다.
+"이제부터 식을 하나 통째로 파싱한다"는 상태이기 때문이다.
+
+**상태 8이 나타나는 시점:** 괄호 안의 식이 $E$ 로 축약된 직후.
+
+$$I_8 = \{F \to (E\cdot),\ E \to E\cdot{+}T\}$$
+
+**상태 8의 역할 — 두 가지를 동시에 기다린다.**
+
+| 보이는 토큰 | 액션 | 뜻 |
+|---|---|---|
+| `+` | s6 | 식이 아직 안 끝났다. 덧셈을 더 한다 |
+| `)` | s11 | 식이 끝났다. 괄호를 닫는다 |
+| 그 밖 | 오류 | |
+
+즉 **"괄호가 아직 안 닫혔다"는 것을 기억하는 상태**다.
+
+`( id + id ) * id` 추적에서:
+
+```
+… 0 ( 4 E 8        입력: + id ) * id $     → s6 (덧셈 계속)
+… 0 ( 4 E 8        입력: ) * id $          → s11 (괄호 닫기)
+```
+
+**왜 이런 상태가 필요한가.** 상태 1($E' \to E\cdot,\ E \to E\cdot{+}T$)과 비교해 보자.
+
+| 상태 | `+` | `)` | `$` |
+|---|---|---|---|
+| 1 (최상위 식) | s6 | — | **acc** |
+| 8 (괄호 안 식) | s6 | **s11** | — |
+
+**둘 다 "식을 하나 봤다"는 상태인데 기대하는 것이 다르다.**
+최상위면 입력 끝을, 괄호 안이면 `)` 를 기다린다.
+
+이 차이를 담기 위해 상태를 나눈 것이고,
+그것이 곧 **"괄호 안에 있다"는 문맥을 상태가 기억한다**는 뜻이다.
+
+</details>
+
 4. `id * id + id` 와 `id + id * id` 의 축약 순서를 비교하라.
    왜 다른가?
+
+<details>
+<summary>풀이</summary>
+
+**`id + id * id`** (본문에서 확인한 것)
+
+```
+r6  r4  r2  r6  r4  r6  r3  r1
+F→id T→F E→T F→id T→F F→id T→T*F E→E+T
+```
+
+**`id * id + id`**
+
+```
+r6  r4  r6  r3  r2  r6  r4  r1
+F→id T→F F→id T→T*F E→T F→id T→F E→E+T
+```
+
+**차이 — `E → T`(r2)의 위치**
+
+| 입력 | r2 가 몇 번째 | 그 시점의 스택 |
+|---|---|---|
+| `id + id * id` | **3번째** | `T` (첫 id만 축약됨) |
+| `id * id + id` | **5번째** | `T` (id*id 가 이미 T로 묶임) |
+
+**왜 다른가.** 첫 `id` 를 $T$ 로 축약한 뒤 lookahead를 본다.
+
+**`id + …` 의 경우** — 스택 `T`, 입력 `+`
+
+상태 2($E \to T\cdot,\ T \to T\cdot{*}F$)에서 `+` 를 보면
+$\mathrm{ACTION}[2, +] = \text{r2}$ → **즉시 $E \to T$ 로 축약**한다.
+`+` 는 $E$ 를 요구하기 때문이다.
+
+**`id * …` 의 경우** — 스택 `T`, 입력 `*`
+
+같은 상태 2에서 `*` 를 보면 $\mathrm{ACTION}[2, *] = \text{s7}$ → **이동**한다.
+곱셈을 먼저 끝내야 하므로 $E$ 로 축약하면 안 된다.
+
+**한 칸의 차이가 결과를 바꾼다.**
+
+| | `+` 열 | `*` 열 |
+|---|---|---|
+| 상태 2 | **r2** (축약) | **s7** (이동) |
+
+그 칸이 그렇게 채워진 이유는 `*` 가 $\mathrm{FOLLOW}(E) = \{+, ), \$\}$ 에
+**없기** 때문이다 ([15.4절](#154-slr1-표-만들기)).
+
+**결론:** 축약 순서의 차이가 곧 **파스 트리 모양의 차이**이고,
+그것이 연산자 우선순위다.
+
+</details>
+
 5. `*p = q` 예제에서 SLR 이 실패하고 LALR 이 성공하는 이유를
    lookahead 집합의 차이로 설명하라.
+
+<details>
+<summary>풀이</summary>
+
+문법:
+
+$$S' \to S,\quad S \to L = R \mid R,\quad L \to *\,R \mid \mathbf{id},\quad R \to L$$
+
+문제의 상태:
+
+$$I_2 = \{\ S \to L\cdot = R,\quad R \to L\cdot\ \}$$
+
+**SLR의 판단**
+
+$R \to L\cdot$ 는 완결 항목이다. SLR은 축약 액션을
+**$\mathrm{FOLLOW}(R)$ 의 모든 열**에 넣는다.
+
+$$\mathrm{FOLLOW}(R) = \{\ =,\ \$\ \}$$
+
+`=` 가 왜 들어가는가? $S \to L = R$ 에서 $L$ 뒤에 `=` 가 오고,
+$R \to L$ 이므로 $\mathrm{FOLLOW}(L) \subseteq$ ... 정확히는
+$S \to L = R$ 의 $L$ 위치 때문에 $\mathrm{FOLLOW}(L) \ni =$ 이고,
+$R \to L$ 에서 $\mathrm{FOLLOW}(R) \subseteq \mathrm{FOLLOW}(L)$ 이 아니라
+반대로 $R \to L$ 은 $\mathrm{FOLLOW}(R) \to \mathrm{FOLLOW}(L)$ 로 흐른다.
+그런데 $L \to *R$ 에서 $\mathrm{FOLLOW}(L) \subseteq \mathrm{FOLLOW}(R)$ 이므로
+결국 `=` 가 $\mathrm{FOLLOW}(R)$ 에도 들어간다.
+
+따라서 SLR은 $\mathrm{ACTION}[2, =]$ 에
+
+- $S \to L\cdot = R$ 에 의한 **shift**
+- $R \to L\cdot$ 에 의한 **reduce**
+
+를 **둘 다** 넣는다 → **충돌** ❌
+
+**LALR의 판단**
+
+LALR은 항목마다 **그 상태에서 실제로 가능한** lookahead를 계산한다.
+
+$$[\,R \to L\cdot,\ \ \$\,]$$
+
+상태 2에서 $R \to L$ 로 축약한 뒤 실제로 올 수 있는 토큰은 **`$` 뿐**이다.
+`=` 는 오지 않는다.
+
+**왜인가.** $R \to L$ 로 축약한다는 것은 "이 $L$ 은 $R$ 로 쓰인다"는 뜻이고,
+$S \to R$ 경로를 탄다는 말이다. 그 경우 뒤에 오는 것은 입력 끝뿐이다.
+
+`=` 가 뒤따르는 상황은 $S \to L = R$ 경로인데,
+그때는 $L$ 을 $R$ 로 축약하지 **않고** 그대로 둔다.
+
+따라서
+
+| | $\mathrm{ACTION}[2, =]$ |
+|---|---|
+| SLR | shift **와** reduce → 충돌 |
+| LALR | **shift 만** → 충돌 없음 ✅ |
+
+**핵심 차이**
+
+$$\mathrm{FOLLOW}(R) = \{=, \$\} \quad \text{vs} \quad \text{상태 2에서의 실제 lookahead} = \{\$\}$$
+
+SLR의 FOLLOW는 **문법 전체**에서 $R$ 뒤에 올 수 있는 것을 모은 것이다.
+"어느 상태에서인지"를 구별하지 않으므로 **너무 넓다**.
+
+LALR은 상태별로 계산하므로 정확하다.
+
+:::note[이 예제가 C의 무엇인가]
+`*p = q` — 포인터 역참조에 대입하는 C 코드다.
+$L$ 은 lvalue(대입 가능한 자리), $R$ 은 rvalue(값)를 모형화한다.
+
+$R \to L$ 은 "lvalue는 rvalue로도 쓸 수 있다"는 규칙이다
+(`x = y` 에서 `y` 는 lvalue지만 값으로 읽힌다).
+
+실제 언어 문법에서 SLR이 부족한 전형적 사례이고,
+yacc가 LALR을 쓰는 이유이기도 하다.
+:::
+
+</details>
+
 6. LALR 병합이 **shift/reduce** 충돌을 새로 만들지 않는 이유를 설명하라.
+
+<details>
+<summary>풀이</summary>
+
+**shift 액션은 lookahead와 무관하게 결정되기 때문이다.**
+
+**shift 액션이 생기는 조건**
+
+$$A \to \alpha \cdot a \beta \in I_i \quad \Rightarrow \quad \mathrm{ACTION}[i, a] = \text{shift}$$
+
+이 조건은 **항목의 코어**(점의 위치와 규칙)만 본다.
+lookahead는 전혀 쓰이지 않는다.
+
+**LALR 병합이 하는 일**
+
+$$[A \to \alpha\cdot\beta,\ a] \ \text{와}\ [A \to \alpha\cdot\beta,\ b] \ \longrightarrow\ [A \to \alpha\cdot\beta,\ \{a, b\}]$$
+
+**코어가 같은 상태끼리만** 병합한다. 즉 병합해도
+
+- 항목의 **집합(코어)은 그대로**
+- **lookahead만 합쳐진다**
+
+**따라서**
+
+| | 병합 전 | 병합 후 |
+|---|---|---|
+| shift 액션 | 코어로 결정 | 코어가 그대로 → **똑같다** |
+| reduce 액션 | 각자의 lookahead | 합쳐진 lookahead → **넓어진다** |
+
+shift 액션 집합이 변하지 않으므로,
+"shift와 reduce가 같은 칸에 있다"는 상황이 **새로 생기려면**
+reduce 쪽이 넓어져서 기존 shift 칸을 침범해야 한다.
+
+**그런데 그럴 수 없다.** 병합되는 두 상태는 코어가 같으므로,
+병합 전에도 **같은 shift 칸**을 갖고 있었다.
+그중 하나에서 reduce가 그 칸에 있었다면 **병합 전에 이미 충돌**이었다.
+
+$$\text{병합 후 shift/reduce 충돌} \Rightarrow \text{병합 전에도 충돌}$$
+
+대우를 취하면 "병합 전에 충돌이 없었으면 병합 후에도 없다". $\blacksquare$
+
+**reduce/reduce 는 왜 다른가**
+
+두 상태가 각각
+
+$$I_1 = \{[A \to \alpha\cdot,\ a],\ [B \to \beta\cdot,\ b]\}, \qquad I_2 = \{[A \to \alpha\cdot,\ b],\ [B \to \beta\cdot,\ a]\}$$
+
+라 하자. 각각은 충돌이 없다 ($a$ 와 $b$ 로 구별된다).
+
+병합하면
+
+$$\{[A \to \alpha\cdot,\ \{a,b\}],\ [B \to \beta\cdot,\ \{a,b\}]\}$$
+
+`a` 열과 `b` 열 **둘 다에서** 두 축약이 겹친다 → **새 충돌** ❌
+
+**차이의 본질:** shift는 코어가 결정하고, reduce는 lookahead가 결정한다.
+병합은 lookahead만 건드리므로 reduce 쪽만 영향을 받는다.
+
+</details>
+
 7. `bison -v` 로 `.output` 을 뽑아, 이 장에서 손으로 만든
    $I_0 \sim I_{11}$ 과 대조하라.
+
+<details>
+<summary>풀이</summary>
+
+```bash
+cd examples/07-yacc-calc
+bison -d -v -o calc.tab.c calc.y
+less calc.output
+```
+
+`calc.y` 는 모호한 문법 + 우선순위 선언을 쓰므로 상태 번호가 이 장과 다르다.
+**같은 문법으로 비교하려면** 계층화된 문법을 따로 만들어 보자.
+
+```y title="expr.y"
+%token NUM
+%%
+E : E '+' T | T ;
+T : T '*' F | F ;
+F : '(' E ')' | NUM ;
+%%
+```
+
+```bash
+bison -v -o /dev/null expr.y && less expr.output
+```
+
+**`.output` 에서 볼 것**
+
+```
+State 0
+
+    0 $accept: . E $end
+
+    NUM  shift, and go to state 1
+    '('  shift, and go to state 2
+
+    E  go to state 3
+    T  go to state 4
+    F  go to state 5
+```
+
+이것이 $I_0$ 다. 다만 bison은
+
+- 증강 규칙을 `$accept: E $end` 로 쓴다 (우리는 $E' \to E$)
+- **CLOSURE로 추가된 항목을 생략**한다 (커널 항목만 보여 준다)
+
+전체 항목을 보려면
+
+```bash
+bison -v --report=all -o /dev/null expr.y
+```
+
+`--report=itemset` 을 주면 CLOSURE 결과까지 전부 나온다.
+
+**대조 포인트**
+
+| 이 장 | bison `.output` |
+|---|---|
+| $I_2 = \{E \to T\cdot,\ T \to T\cdot{*}F\}$ | `E: T .` / `T: T . '*' F` |
+| `*` 열에 s7 | `'*' shift, and go to state N` |
+| `+`,`)`,`$` 열에 r2 | `$default reduce using rule 2 (E)` |
+
+**`$default` 에 주목하자.** bison은 [16.6절의 표 압축](/docs/parsing/lr-parser-implementation#166-표-압축)을
+적용해, FOLLOW 집합의 각 열에 같은 축약을 반복해 넣는 대신
+"기본값"으로 한 번만 적는다.
+
+**상태 번호는 다를 수 있다.** 항목 집합을 만드는 순서가
+구현에 따라 다르기 때문이다. **내용**이 같은지를 보면 된다.
+
+</details>
 
 ---
 

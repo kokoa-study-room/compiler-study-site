@@ -451,16 +451,373 @@ echo "1 + 2 * (3 - 1)" | ./calc
 
 1. 다음 문법의 LL(1) 표를 만들어라. 충돌이 있는가?
    $$S \to A\,B, \quad A \to a \mid \varepsilon, \quad B \to b \mid \varepsilon$$
+
+<details>
+<summary>풀이</summary>
+
+[12장 확인 문제 1](/docs/parsing/syntax-analysis#확인-문제)과 비슷하지만
+끝의 `c` 가 없다.
+
+**FIRST / FOLLOW**
+
+| 넌터미널 | FIRST | FOLLOW |
+|---|---|---|
+| $S$ | `{ a, b, ε }` | `{ $ }` |
+| $A$ | `{ a, ε }` | `{ b, $ }` |
+| $B$ | `{ b, ε }` | `{ $ }` |
+
+$S \to AB$ 에서 $A$, $B$ 가 **둘 다 nullable** 이므로 $S$ 도 nullable —
+$\varepsilon$ 이 $\mathrm{FIRST}(S)$ 에 들어간다.
+
+$\mathrm{FOLLOW}(A)$ : $S \to A\,B$ 에서 $\mathrm{FIRST}(B) - \{\varepsilon\} = \{b\}$,
+그리고 $B$ 가 nullable 이므로 $\mathrm{FOLLOW}(S) = \{\$\}$ 도 상속받는다.
+
+**규칙 번호**
+
+| # | 규칙 |
+|---|---|
+| 0 | $S \to AB$ |
+| 1 | $A \to a$ |
+| 2 | $A \to \varepsilon$ |
+| 3 | $B \to b$ |
+| 4 | $B \to \varepsilon$ |
+
+**표 구성**
+
+| | `a` | `b` | `$` |
+|---|---|---|---|
+| **S** | 0 | 0 | 0 |
+| **A** | 1 | 2 | 2 |
+| **B** | | 3 | 4 |
+
+- $S \to AB$ : $\mathrm{FIRST}(AB) = \{a, b, \varepsilon\}$ →
+  `a`, `b` 열. nullable 이므로 $\mathrm{FOLLOW}(S) = \{\$\}$ 열에도
+- $A \to a$ : `a` 열
+- $A \to \varepsilon$ : $\mathrm{FOLLOW}(A) = \{b, \$\}$ 열
+- $B \to b$ : `b` 열
+- $B \to \varepsilon$ : $\mathrm{FOLLOW}(B) = \{\$\}$ 열
+
+**충돌은 없다.** 어느 칸에도 규칙이 둘 이상 들어가지 않았다. **LL(1) 문법이다.** ✅
+
+**왜 충돌이 없는가.** $A$ 를 결정할 때 `a` 를 보면 $A \to a$,
+그 밖(`b` 나 `$`)을 보면 $A \to \varepsilon$ 이다.
+$\mathrm{FIRST}(a) = \{a\}$ 와 $\mathrm{FOLLOW}(A) = \{b, \$\}$ 가
+**겹치지 않으므로** 결정할 수 있다.
+
+</details>
+
 2. 다음 문법이 LL(1)이 아닌 이유를 세 조건 중 어느 것 위반인지로 답하라.
    $$S \to a\,S\,b \mid a\,b$$
    좌인수분해하면 LL(1)이 되는가?
+
+<details>
+<summary>풀이</summary>
+
+**위반한 조건: 1번**
+
+$$\mathrm{FIRST}(aSb) \cap \mathrm{FIRST}(ab) = \{a\} \cap \{a\} = \{a\} \neq \emptyset$$
+
+두 대안이 **같은 터미널로 시작**하므로 한 토큰만 보고는 구별할 수 없다.
+공통 접두사 문제다.
+
+**좌인수분해**
+
+공통 접두사 `a` 를 뽑는다.
+
+$$
+\begin{aligned}
+S &\to a\,S' \\
+S' &\to S\,b \mid b
+\end{aligned}
+$$
+
+**LL(1)이 되었는가 — 확인해 보자.**
+
+$$\mathrm{FIRST}(Sb) = \mathrm{FIRST}(S) = \{a\}, \qquad \mathrm{FIRST}(b) = \{b\}$$
+
+$$\{a\} \cap \{b\} = \emptyset \quad ✅$$
+
+$S'$ 의 두 대안이 서로 다른 터미널로 시작하므로 **결정할 수 있다.**
+
+두 대안 모두 $\varepsilon$ 을 유도하지 않으므로 조건 2, 3도 자동으로 만족한다.
+
+**따라서 LL(1)이 되었다.** ✅
+
+**표**
+
+| | `a` | `b` | `$` |
+|---|---|---|---|
+| **S** | $S \to aS'$ | | |
+| **S'** | $S' \to Sb$ | $S' \to b$ | |
+
+**생성하는 언어:** $\{a^n b^n \mid n \geq 1\}$
+
+:::tip[좌인수분해가 항상 통하지는 않는다]
+여기서는 한 번에 해결됐지만,
+[10장에서 본](/docs/parsing/context-free-grammar#좌인수분해) dangling else처럼
+좌인수분해 후에도 모호성이 남는 경우가 있다.
+
+**좌인수분해는 "겉으로 드러난 공통 접두사"만 제거한다.**
+넌터미널을 통해 간접적으로 겹치면 소용없다.
+:::
+
+</details>
+
 3. 위 시뮬레이터에 `( id + id ) * id` 를 넣고,
    출력된 규칙 열이 실제로 좌측 유도인지 손으로 확인하라.
+
+<details>
+<summary>풀이</summary>
+
+시뮬레이터가 출력하는 규칙 열(출력 순서):
+
+```
+E→TE'  T→FT'  F→(E)  E→TE'  T→FT'  F→id  T'→ε
+E'→+TE'  T→FT'  F→id  T'→ε  E'→ε  T'→*FT'  F→id  T'→ε  E'→ε
+```
+
+**이것을 순서대로 적용해 보자.** 매번 **가장 왼쪽 넌터미널**을 전개한다.
+
+```
+E
+⇒ T E'                          E→TE'
+⇒ F T' E'                       T→FT'
+⇒ ( E ) T' E'                   F→(E)
+⇒ ( T E' ) T' E'                E→TE'
+⇒ ( F T' E' ) T' E'             T→FT'
+⇒ ( id T' E' ) T' E'            F→id
+⇒ ( id E' ) T' E'               T'→ε
+⇒ ( id + T E' ) T' E'           E'→+TE'
+⇒ ( id + F T' E' ) T' E'        T→FT'
+⇒ ( id + id T' E' ) T' E'       F→id
+⇒ ( id + id E' ) T' E'          T'→ε
+⇒ ( id + id ) T' E'             E'→ε
+⇒ ( id + id ) * F T' E'         T'→*FT'
+⇒ ( id + id ) * id T' E'        F→id
+⇒ ( id + id ) * id E'           T'→ε
+⇒ ( id + id ) * id              E'→ε
+```
+
+**매 단계에서 가장 왼쪽 넌터미널만 전개했다.** ✅ 좌측 유도가 맞다.
+
+**확인 요령.** 각 줄에서 바뀐 심볼이 그 줄에 남아 있는 넌터미널 중
+**가장 왼쪽**인지 보면 된다.
+
+예를 들어 8행에서 `( id T' E' ) T' E'` → `( id E' ) T' E'` 는
+`T'` 가 세 개 있지만 **첫 번째** `T'` 를 지웠다. ✅
+
+:::info[LL이 좌측 유도를 만드는 이유]
+LL 파서의 스택은 "아직 매치해야 할 심볼들"을 담고 있고,
+**맨 위가 가장 왼쪽 심볼**이다.
+
+스택 맨 위를 처리한다는 것이 곧 가장 왼쪽 심볼을 처리한다는 뜻이고,
+그래서 자연히 좌측 유도가 나온다.
+:::
+
+</details>
+
 4. $T' \to \varepsilon$ 이 왜 `+` 열에 들어가는지 설명하라.
+
+<details>
+<summary>풀이</summary>
+
+**표 구성 규칙 2번** 때문이다.
+
+> $\varepsilon \in \mathrm{FIRST}(\alpha)$ 이면,
+> $\mathrm{FOLLOW}(A)$ 의 각 터미널 $b$ 에 대해 $M[A, b] = A \to \alpha$
+
+$T' \to \varepsilon$ 은 당연히 $\varepsilon$ 을 유도하므로,
+$\mathrm{FOLLOW}(T')$ 의 **모든** 열에 들어간다.
+
+$$\mathrm{FOLLOW}(T') = \{+,\ ),\ \$\}$$
+
+`+` 가 여기 있으므로 $M[T', +] = T' \to \varepsilon$ 이 된다.
+
+**왜 `+` 가 $\mathrm{FOLLOW}(T')$ 에 있는가**
+
+$$T \to F\,T', \qquad E' \to +\,T\,E'$$
+
+$T \to FT'$ 에서 $T'$ 은 $T$ 의 **맨 끝**에 있다.
+따라서 $T$ 뒤에 올 수 있는 것은 $T'$ 뒤에도 올 수 있다.
+
+$$\mathrm{FOLLOW}(T) \subseteq \mathrm{FOLLOW}(T')$$
+
+그리고 $E \to T\,E'$ 에서 $T$ 뒤에는 $E'$ 이 오고,
+$\mathrm{FIRST}(E') \ni +$ 이므로 `+` $\in \mathrm{FOLLOW}(T)$ 다.
+
+**의미로 읽으면**
+
+`id + ...` 를 파싱하는 중이라고 하자.
+
+```
+스택: … T' …          입력: + id ...
+```
+
+`T'` 는 "곱셈이 더 이어지는가"를 담당한다.
+지금 보이는 것이 `+` 이므로 **곱셈은 끝났다**.
+따라서 `T'` 를 **비워서** 사라지게 하고, `+` 는 바깥의 `E'` 이 처리한다.
+
+만약 `*` 가 보였다면 $T' \to *FT'$ 로 곱셈을 계속했을 것이다.
+
+:::tip[이것이 FOLLOW 집합의 존재 이유다]
+"이 넌터미널을 **비울지** 결정하려면 그 **뒤에 무엇이 오는지** 봐야 한다."
+
+FIRST만으로는 ε 규칙을 언제 쓸지 알 수 없다.
+$\mathrm{FIRST}(\varepsilon) = \{\varepsilon\}$ 뿐이라 아무 정보가 없기 때문이다.
+:::
+
+</details>
+
 5. 재귀 하강으로 $E \to E + T \mid T$ 를 그대로 옮기면
    왜 무한 재귀가 되는지 호출 스택으로 설명하라.
+
+<details>
+<summary>풀이</summary>
+
+**기계적으로 옮기면**
+
+```c
+Node *parse_E(void) {
+    /* 대안 1: E → E + T */
+    Node *left = parse_E();        /* ← 여기 */
+    match('+');
+    Node *right = parse_T();
+    return make_binop('+', left, right);
+}
+```
+
+**호출 스택 추적**
+
+| 깊이 | 함수 | 소비한 입력 |
+|---|---|---|
+| 1 | `parse_E()` | 0글자 |
+| 2 | `parse_E()` | **0글자** |
+| 3 | `parse_E()` | **0글자** |
+| … | … | … |
+| 수만 | `parse_E()` | **0글자** |
+| | **스택 오버플로** | |
+
+**핵심: 입력을 하나도 소비하지 않고 자기 자신을 부른다.**
+
+재귀가 끝나려면 **매 호출마다 문제가 작아져야** 하는데,
+`parse_E()` 의 첫 동작이 `parse_E()` 이므로 문제가 전혀 줄지 않는다.
+상태가 완전히 같으므로 **같은 일을 영원히 반복**한다.
+
+**대안을 먼저 시도해도 마찬가지다.**
+
+```c
+Node *parse_E(void) {
+    if (/* E → T 를 택할까? */) return parse_T();
+    else { Node *l = parse_E(); … }   /* 여전히 문제 */
+}
+```
+
+**어느 대안을 택할지 결정할 수가 없다.**
+$\mathrm{FIRST}(E+T) = \mathrm{FIRST}(T) = \mathrm{FIRST}(E)$ 이므로
+lookahead를 봐도 구별이 안 된다.
+"일단 $E \to E+T$ 를 시도하고 실패하면 되돌린다"는 백트래킹뿐인데,
+그것도 무한 재귀에 빠진다.
+
+**해결 — 좌재귀 제거**
+
+$$E \to T\,E', \qquad E' \to +\,T\,E' \mid \varepsilon$$
+
+```c
+Node *parse_E(void) {
+    Node *left = parse_T();       /* ← 먼저 T 를 소비한다 */
+    return parse_E_prime(left);
+}
+```
+
+이제 `parse_E()` 가 `parse_T()` 를 먼저 부르고,
+`parse_T()` 는 반드시 **최소 한 토큰을 소비**한다.
+따라서 재귀가 진행될수록 남은 입력이 줄어 반드시 끝난다.
+
+:::info[LR은 왜 괜찮은가]
+LR은 규칙을 **미리 고르지 않는다**.
+토큰을 스택에 쌓다가 $E + T$ 가 다 모이면 그때 축약한다.
+
+"$E$ 를 파싱하려면 먼저 $E$ 를 파싱해야 한다"는 순환이
+애초에 생기지 않는다. 이것이
+[12장](/docs/parsing/syntax-analysis#121-두-가지-전략)에서 말한
+"결정을 늦출수록 강하다"의 구체적 사례다.
+:::
+
+</details>
+
 6. dangling else 를 재귀 하강으로 처리할 때
    `if (lookahead == ELSE)` 한 줄이 왜 "가장 가까운 if에 붙인다"가 되는가?
+
+<details>
+<summary>풀이</summary>
+
+```c
+static Node *parse_stmt(void) {
+    if (lookahead == IF) {
+        advance();
+        Node *cond = parse_expr();
+        Node *then_part = parse_stmt();      /* ← 재귀. 안쪽 if 가 여기서 처리된다 */
+
+        if (lookahead == ELSE) {             /* ← 이 한 줄 */
+            advance();
+            Node *else_part = parse_stmt();
+            return make_if_else(cond, then_part, else_part);
+        }
+        return make_if(cond, then_part);
+    }
+    ...
+}
+```
+
+**입력:** `if E1 then if E2 then S1 else S2`
+
+**호출 순서를 따라가자.**
+
+| 깊이 | 하는 일 | 그때의 lookahead |
+|---|---|---|
+| 1 | 바깥 `if` 를 만나 `parse_stmt()` 재귀 호출 | `if` (안쪽) |
+| 2 | 안쪽 `if` 를 처리. `then_part = S1` 을 파싱하고 돌아옴 | **`else`** |
+| 2 | **`if (lookahead == ELSE)` 가 참** → `else` 를 **소비**한다 | |
+| 2 | `else_part = S2` 파싱. `make_if_else` 반환 | |
+| 1 | 안쪽 호출에서 돌아옴. 이제 lookahead 확인 | `else` 가 **이미 없다** |
+| 1 | `if (lookahead == ELSE)` 가 거짓 → `make_if` 반환 | |
+
+**핵심: 안쪽 호출이 `else` 를 먼저 가로챈다.**
+
+호출 스택에서 **안쪽 `if` 가 더 나중에 시작했으므로 더 먼저 끝난다**(LIFO).
+그 시점에 `else` 가 보이므로 안쪽이 먼저 집어 간다.
+바깥이 돌아왔을 때는 이미 소비된 뒤다.
+
+**만약 반대로 하려면?**
+
+"바깥 `if` 에 붙이고 싶다"면, 안쪽 호출이 `else` 를 **소비하지 않도록**
+문맥 정보를 넘겨야 한다.
+
+```c
+static Node *parse_stmt(bool can_take_else) {
+    ...
+    if (can_take_else && lookahead == ELSE) { ... }
+}
+```
+
+이 `can_take_else` 가 바로
+[17장의 상속 속성](/docs/parsing/syntax-directed-translation#l-속성-문법)이다 —
+부모가 자식에게 내려보내는 정보.
+
+:::tip[손으로 쓴 파서의 장점이 드러나는 지점]
+LR에서는 이것이 **shift/reduce 충돌**로 나타나고,
+"bison이 기본적으로 shift를 택하므로 안쪽에 붙는다"는
+간접적인 설명이 필요하다
+([20장](/docs/yacc/conflicts-and-precedence#204-dangling-else)).
+
+재귀 하강에서는 `if (lookahead == ELSE)` **한 줄이 곧 규칙**이다.
+코드를 읽으면 동작이 그대로 보인다.
+
+이것이 GCC·Clang·Rust·Go가 여전히 손으로 쓴 재귀 하강을 쓰는
+이유 중 하나다.
+:::
+
+</details>
 
 ---
 

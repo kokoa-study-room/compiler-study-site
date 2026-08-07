@@ -1,0 +1,21 @@
+lexeme           table     direct    (a|b)*abb
+---------------- --------- --------- ---------
+[2.5e-3]
+      시작 S0
+      '2' : S0 -> S1
+      '.' : S1 -> S2
+      '5' : S2 -> S3
+      'e' : S3 -> S4
+      '-' : S4 -> S5
+      '3' : S5 -> S6
+      끝   S6 -> FLOAT
+2.5e-3           FLOAT     FLOAT     거부
+[12x]
+      시작 S0
+      '1' : S0 -> S1
+      '2' : S1 -> S1
+      'x' : S1 -> DEAD
+      끝   DEAD -> INVALID
+12x              INVALID   INVALID   거부
+----
+두 구현의 결과가 모두 일치한다.

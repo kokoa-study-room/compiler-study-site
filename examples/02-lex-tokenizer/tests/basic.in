@@ -1,0 +1,12 @@
+int main(void) {
+    float rate = 3.14e-2;   // 초당 비율
+    int count = 0xFF;
+    char c = 'A';
+    /* 여러 줄에
+       걸친 주석 */
+    while (count >= 0 && rate != 0.0) {
+        count -= 1;
+        printf("count=%d\n", count);
+    }
+    return 0;
+}

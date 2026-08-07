@@ -1,0 +1,21 @@
+   1  KEYWORD    int
+   1  ID         x
+   1  ASSIGN     =
+   1  INT        1
+   1  PUNCT      ;
+   2  오류: 인식할 수 없는 문자 '@'
+   2  오류: 인식할 수 없는 문자 '#'
+   2  오류: 인식할 수 없는 문자 '$'
+   3  KEYWORD    char
+   3  ARITHOP    *
+   3  ID         s
+   3  ASSIGN     =
+   3  오류: 인식할 수 없는 문자 '"'
+   3  ID         unterminated
+   3  PUNCT      ;
+   4  ID         y
+   4  ASSIGN     =
+   4  INT        2
+   4  PUNCT      ;
+----
+토큰 15개, 오류 4개

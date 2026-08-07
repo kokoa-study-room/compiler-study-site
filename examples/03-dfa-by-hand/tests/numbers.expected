@@ -1,0 +1,20 @@
+lexeme           table     direct    (a|b)*abb
+---------------- --------- --------- ---------
+0                INT       INT       거부
+42               INT       INT       거부
+007              INT       INT       거부
+3.14             FLOAT     FLOAT     거부
+.5               INVALID   INVALID   거부
+5.               INVALID   INVALID   거부
+1e10             FLOAT     FLOAT     거부
+1E+10            FLOAT     FLOAT     거부
+2.5e-3           FLOAT     FLOAT     거부
+1e               INVALID   INVALID   거부
+1e+              INVALID   INVALID   거부
+12x              INVALID   INVALID   거부
+abb              INVALID   INVALID   수락
+aabb             INVALID   INVALID   수락
+ababb            INVALID   INVALID   수락
+abba             INVALID   INVALID   거부
+----
+두 구현의 결과가 모두 일치한다.

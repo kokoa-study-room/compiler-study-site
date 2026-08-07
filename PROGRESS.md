@@ -15,7 +15,7 @@
 | 2 | 최신 경향·연구 리서치 | ✅ 완료 |
 | 3 | 1부 — 컴파일러 개요, 언어와 문법 | ✅ 완료 |
 | 4 | 2부 — 정규언어, 정규 표현, 유한 오토마타, 표현 방법 | ✅ 완료 |
-| 5 | 3부 — LEX 3개 장 + flex 실습 코드 | ⬜ 예정 |
+| 5 | 3부 — LEX 3개 장 + flex 실습 코드 | ✅ 완료 |
 | 6 | 4부 — CFG, 문법 유형, 구문 분석, LL, LR, LR 구현 | ⬜ 예정 |
 | 7 | 5부 — YACC 3개 장 + bison 실습, 통합 미니 컴파일러 | ⬜ 예정 |
 | 8 | 6부 — 최신 경향과 연구, 도구 지형도 | ⬜ 예정 |
@@ -90,3 +90,39 @@
   Thompson NFA 11-상태 다이어그램의 곡선 라우팅, 시뮬레이터 단계 이동과
   수락 판정, 부분집합 구성 표 진행, admonition 58개 렌더링(잔여 리터럴 `:::` 0개).
 - 다이어그램 viewBox 높이를 실제 내용에 맞게 줄여 아래쪽 빈 공간 제거.
+
+### 2026-08-07 · 작업 5 — 3부 LEX + flex 실습
+
+**한 일**
+
+- 실습 하네스 구축: `examples/Makefile`, `examples/common/rules.mk`.
+  `tests/NAME.in` / `NAME.expected` / `NAME.args` 규약으로 diff 비교.
+- flex 예제 4종 작성 및 테스트 통과 (총 12케이스).
+  - `01-lex-wordcount` — lex 파일 3부 구조
+  - `02-lex-tokenizer` — 최장 일치·규칙 순서·catch-all
+  - `03-dfa-by-hand` — 전이표 구동 / 직접 코딩 DFA, 두 구현 일치 검증
+  - `04-lex-states` — 시작 조건, 중첩 주석, 이스케이프 해석, `<<EOF>>`
+- 문서 3장 + 실습 페이지 작성: 7. LEX / 8. LEX 입력 및 파싱 /
+  9. LEX 입력 파일 작성 / LEX 실습.
+
+**문서에 실은 도구 출력은 모두 실제 실행 결과**
+
+- `flex -v` 상태 수 (wordcount 15 NFA/7 DFA, tokenizer 273 NFA/92 DFA)
+- `flex -d` 매치 추적 (`--accepting rule at line NN`)
+- `flex -b` 되감기 보고서(`lex.backup`)
+- 규칙 순서를 뒤집었을 때의 `rule cannot be matched` 경고
+
+**설계 판단**
+
+- `common/rules.mk` 에서 `LEX`/`YACC` 를 `?=` 가 아니라
+  `$(origin ...)` 검사로 덮어썼다. make 는 `LEX=lex`, `YACC=yacc` 를
+  내장 기본값으로 갖고 있어 `?=` 로는 바뀌지 않는다.
+  특히 `yacc` 는 bison 의 yacc 호환 모드라 출력 파일 이름이 달라진다.
+- 예제의 진단 출력 앞에 `fflush(stdout)` 을 넣었다.
+  그러지 않으면 stdout 버퍼링 때문에 오류 줄이 전부 앞으로 몰려
+  테스트 비교가 불안정해진다.
+
+**검증**
+
+- `cd examples && make test` — 4개 예제 12케이스 전부 통과.
+- `bun run build` 통과.

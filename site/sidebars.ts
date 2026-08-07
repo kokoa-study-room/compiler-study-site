@@ -49,9 +49,41 @@ const sidebars: SidebarsConfig = {
         'regular/representations',
       ],
     },
+    {
+      type: 'category',
+      label: '3부 · LEX',
+      collapsed: false,
+      link: {
+        type: 'generated-index',
+        title: '3부 · LEX',
+        description:
+          '2부의 이론을 자동화한 도구. lex/flex가 정규 표현으로부터 어떻게 DFA를 만들고 토큰을 잘라내는지, 그리고 입력 파일을 어떻게 쓰는지 다룬다.',
+        slug: '/category/lex',
+      },
+      items: [
+        'lex/lex-overview',
+        'lex/lex-input-and-parsing',
+        'lex/writing-lex-files',
+      ],
+    },
   ],
 
-  labSidebar: ['labs/setup'],
+  labSidebar: [
+    'labs/setup',
+    {
+      type: 'category',
+      label: '실습 과제',
+      collapsed: false,
+      link: {
+        type: 'generated-index',
+        title: '실습 과제',
+        description:
+          'flex와 bison을 직접 돌려 보는 과제 모음. 모든 예제는 저장소의 examples/ 아래에 실행 가능한 형태로 들어 있다.',
+        slug: '/category/labs',
+      },
+      items: ['labs/lex-labs'],
+    },
+  ],
 };
 
 export default sidebars;

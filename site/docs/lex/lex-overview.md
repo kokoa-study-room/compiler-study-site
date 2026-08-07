@@ -455,13 +455,273 @@ lex가 항상 정답은 아니다. 실제 프로덕션 컴파일러 상당수가
    ```
    입력이 `ab12cd34`일 때 출력은?
    (힌트: 기본 규칙을 잊지 말 것)
+
+<details>
+<summary>풀이</summary>
+
+**출력: `ab<12>cd<34>`**
+
+규칙이 하나뿐이지만 **기본 규칙**이 조용히 작동한다.
+
+| 입력 위치 | 매치되는 규칙 | 동작 |
+|---|---|---|
+| `a` | 없음 → **기본 규칙** | `a` 를 그대로 출력 |
+| `b` | 없음 → 기본 규칙 | `b` 출력 |
+| `12` | `[0-9]+` | `<12>` 출력 |
+| `c`, `d` | 기본 규칙 | `cd` 출력 |
+| `34` | `[0-9]+` | `<34>` 출력 |
+
+**이 프로그램의 정체:** "숫자를 꺾쇠로 감싸는 필터".
+숫자가 아닌 문자는 손대지 않고 통과시킨다.
+
+:::caution[의도한 것이 아니라면 버그다]
+"숫자만 뽑아 출력하고 싶었다"면 이 결과는 틀렸다.
+`ab`, `cd` 가 딸려 나왔기 때문이다.
+
+고치려면 catch-all 규칙을 추가한다.
+
+```c
+%%
+[0-9]+   printf("<%s>", yytext);
+.|\n     ;                        /* 나머지는 버린다 */
+```
+
+기본 규칙이 **아무 경고 없이** 개입한다는 것이
+[7.2절](#72-lex-입력-파일의-구조)에서 경고한 문제다.
+`flex -s` 로 컴파일하면 기본 규칙이 쓰일 때 경고해 준다.
+:::
+
+</details>
+
 2. `%{ ... %}` 안의 코드와 두 번째 `%%` 이후의 코드는 각각
    생성 파일의 어디로 복사되는가? 왜 그 위치여야 하는가?
+
+<details>
+<summary>풀이</summary>
+
+| 구역 | 복사되는 위치 | 이유 |
+|---|---|---|
+| `%{ … %}` | 생성 파일 **맨 위** (`yylex()` 앞) | `#include`, 전역 변수, 함수 **선언**이 액션 코드보다 먼저 나와야 컴파일된다 |
+| 둘째 `%%` 이후 | 생성 파일 **맨 끝** (`yylex()` 뒤) | `main()` 과 헬퍼 함수 **정의**. `yylex()` 를 호출하려면 그것이 이미 정의되어 있어야 한다 |
+
+생성 파일의 구조를 그려 보면 명확하다.
+
+```c
+/* ── %{ … %} 의 내용이 여기 ── */
+#include <stdio.h>
+static long words = 0;
+static void emit(const char *, const char *);   /* 선언 */
+
+/* ── flex가 생성하는 부분 ── */
+static const short yy_nxt[][...] = { … };       /* DFA 표 */
+
+int yylex(void)
+{
+    …
+    case 3:
+        { words++; chars += yyleng; }           /* ← 규칙부의 액션이 여기 */
+        …
+}
+
+/* ── 둘째 %% 이후의 내용이 여기 ── */
+int main(void) { yylex(); … }                   /* 정의 */
+```
+
+**만약 위치가 바뀐다면:**
+
+- 전역 변수를 아래에 두면 → 액션 코드에서 `words` 를 못 찾아 컴파일 오류
+- `main()` 을 위에 두면 → `yylex()` 가 아직 선언되지 않아 오류
+  (C99 이후로는 암묵적 선언도 안 된다)
+
+:::tip[헷갈리면 이렇게 기억하자]
+- `%{ %}` = "액션이 쓸 것들" → **먼저**
+- 둘째 `%%` 이후 = "스캐너를 쓰는 것들" → **나중**
+:::
+
+</details>
+
 3. `yytext`를 복사하지 않고 심볼 테이블에 저장하면 어떤 일이 벌어지는지
    구체적인 시나리오로 설명하라.
+
+<details>
+<summary>풀이</summary>
+
+**시나리오.** 입력이 `int count; int sum;` 이라고 하자.
+
+```c
+{id}   { symtab_add(yytext); return ID; }   /* ❌ 복사하지 않았다 */
+```
+
+`symtab_add` 가 포인터만 저장한다면:
+
+| 시점 | `yytext` 가 가리키는 내용 | 심볼 테이블 |
+|---|---|---|
+| `count` 매치 직후 | `"count"` | `[0] → yytext` |
+| `sum` 매치 직후 | **`"sum"`** ← 같은 버퍼를 덮어썼다 | `[0] → yytext`, `[1] → yytext` |
+
+두 항목이 **같은 주소**를 가리키고, 그 내용은 마지막 매치인 `"sum"` 이다.
+
+```c
+printf("%s %s\n", symtab[0], symtab[1]);   /* "sum sum" 출력 */
+```
+
+**왜 이런가.** `yytext` 는 새 배열이 아니라
+**flex 내부 입력 버퍼 안을 가리키는 포인터**다.
+매치할 때마다 flex는 `yytext` 를 새 위치로 옮기고,
+매치 끝에 `\0` 을 임시로 넣었다가 되돌린다.
+
+더 나쁜 경우: [8장의 입력 버퍼링](/docs/lex/lex-input-and-parsing#83-입력-버퍼링)에서
+본 대로 버퍼가 **재할당**되면 옛 포인터는 **해제된 메모리**를 가리킨다.
+그러면 값이 뒤섞이는 정도가 아니라 **use-after-free** 다.
+이런 버그는 입력이 작을 때는 재현되지 않다가 큰 파일에서만 터진다.
+
+**해결**
+
+```c
+{id}   { symtab_add(strdup(yytext)); return ID; }   /* ✅ */
+```
+
+`strdup` 은 `malloc` 하므로 **해제 책임**이 생긴다.
+`examples/07-yacc-calc` 에서 `free($1)` 을 하는 이유가 이것이다.
+
+</details>
+
 4. `01-lex-wordcount` 예제를 고쳐, 가장 긴 단어와 그 길이도 출력하게 하라.
+
+<details>
+<summary>풀이</summary>
+
+```c title="wordcount.l (수정)"
+%option noyywrap
+%option noinput nounput
+
+%{
+#include <stdio.h>
+#include <string.h>
+
+static long chars = 0, words = 0, lines = 0;
+
+/* 가장 긴 단어를 보관한다. yytext 는 덮어써지므로 반드시 복사해야 한다. */
+static char longest[256] = "";
+static int  longest_len = 0;
+%}
+
+word    [^ \t\n]+
+
+%%
+
+{word}      {
+              words++;
+              chars += yyleng;
+              if (yyleng > longest_len) {
+                  longest_len = yyleng;
+                  snprintf(longest, sizeof longest, "%s", yytext);  /* ← 복사 */
+              }
+            }
+\n          { lines++; chars++; }
+[ \t]       { chars++; }
+
+%%
+
+int main(void)
+{
+    yylex();
+    printf("lines=%ld words=%ld chars=%ld\n", lines, words, chars);
+    if (longest_len > 0)
+        printf("longest=\"%s\" (%d글자)\n", longest, longest_len);
+    return 0;
+}
+```
+
+**핵심은 `snprintf` 로 복사한 것이다.**
+`longest = yytext;` 로 포인터만 저장하면 3번 문제의 버그가 그대로 재현된다.
+
+```bash
+printf 'a bb ccc dddd ee\n' | ./wordcount
+```
+```
+lines=1 words=5 chars=17
+longest="dddd" (4글자)
+```
+
+**확장:** 같은 길이의 단어가 여럿일 때 첫 번째를 남기려면 `>` 를,
+마지막을 남기려면 `>=` 를 쓴다.
+
+</details>
+
 5. `flex -v`로 예제의 NFA/DFA 상태 수를 확인하고,
    규칙을 하나 추가했을 때 어떻게 변하는지 관찰하라.
+
+<details>
+<summary>풀이</summary>
+
+**원본**
+
+```bash
+cd examples/01-lex-wordcount
+flex -v -o /dev/null wordcount.l
+```
+```
+  15/2000 NFA states
+  7/1000 DFA states (19 words)
+  11 epsilon states, 5 double epsilon states
+```
+
+**규칙 하나 추가** — 예를 들어 숫자를 따로 세는 규칙:
+
+```c
+[0-9]+      { numbers++; chars += yyleng; }
+```
+
+다시 돌리면 NFA 상태가 몇 개 늘고 DFA 상태도 늘어난다.
+
+**관찰 포인트 셋**
+
+**① 규칙 하나가 NFA 상태를 여러 개 늘린다.**
+Thompson 구성은 기호 하나마다 상태 2개를 쓴다
+([6장](/docs/regular/representations#62-정규-표현--nfa-thompson-구성)).
+`[0-9]+` 는 문자 클래스 하나 + `+` 이므로 4개쯤 늘어난다.
+
+**② DFA 상태는 훨씬 적게 는다.**
+새 규칙의 패턴이 기존 패턴과 **겹치는 부분**이 있으면
+부분집합 구성에서 같은 상태로 합쳐지기 때문이다.
+
+여기서는 `[0-9]+` 가 기존 `{word}` = `[^ \t\n]+` 에 **완전히 포함**된다.
+그래서 DFA가 크게 늘지 않는다.
+
+**③ 겹치지 않는 패턴을 넣으면 크게 는다.**
+
+```c
+"aaaaaaaaaa"   { ... }    /* 10글자 리터럴 */
+```
+
+기존 패턴과 접두사를 공유하지 않으므로 상태가 그만큼 그대로 늘어난다.
+
+**비교해 볼 것**
+
+```bash
+cd ../02-lex-tokenizer
+flex -v -o /dev/null tokenizer.l
+```
+```
+  273/2000 NFA states
+  92/1000 DFA states (493 words)
+```
+
+토큰 규칙이 30개쯤인데 NFA가 273상태다.
+**규칙 하나당 평균 9상태.** 이것이 [7.1절](#71-lex란-무엇인가)에서
+"손으로 관리할 수 없다"고 한 근거다.
+
+:::tip[상태 폭발을 조심할 패턴]
+```bash
+flex -v scanner.l 2>&1 | grep "DFA states"
+```
+DFA 상태가 수천 개로 나오면 재설계 신호다.
+`.*XYZ` 나 `.{10}$` 같은 "끝에서 몇 번째" 패턴이 주범이다
+([6장](/docs/regular/representations#상태-폭발은-언제-일어나는가)).
+:::
+
+</details>
 
 ---
 

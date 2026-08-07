@@ -1,0 +1,284 @@
+/* ── 다이어그램 ────────────────────────────────────────── */
+
+.figure {
+  margin: 0 0 1rem;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+
+.stateCircle {
+  fill: var(--cs-surface);
+  stroke: var(--cs-border);
+  stroke-width: 2;
+  transition: fill 0.18s ease, stroke 0.18s ease;
+}
+
+.stateActive {
+  fill: var(--cs-active-soft);
+  stroke: var(--cs-active);
+  stroke-width: 2.5;
+}
+
+.stateAccept {
+  fill: var(--cs-accept-soft);
+  stroke: var(--cs-accept);
+}
+
+.stateReject {
+  fill: var(--cs-reject-soft);
+  stroke: var(--cs-reject);
+}
+
+.stateLabel {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 14px;
+  font-weight: 600;
+  fill: var(--ifm-font-color-base);
+  pointer-events: none;
+  user-select: none;
+}
+
+.edge {
+  fill: none;
+  stroke: var(--cs-border);
+  stroke-width: 1.8;
+  transition: stroke 0.18s ease;
+}
+
+.edgeActive {
+  stroke: var(--cs-active);
+  stroke-width: 2.6;
+}
+
+.arrowHead {
+  fill: var(--cs-border);
+}
+
+.arrowHeadActive {
+  fill: var(--cs-active);
+}
+
+.edgeLabel {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 13px;
+  fill: var(--cs-text-muted);
+  paint-order: stroke;
+  stroke: var(--cs-surface);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+  user-select: none;
+}
+
+.edgeLabelActive {
+  fill: var(--cs-active);
+  font-weight: 700;
+}
+
+.caption {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--cs-text-muted);
+  margin-top: 0.4rem;
+}
+
+/* ── 시뮬레이터 ────────────────────────────────────────── */
+
+.sim {
+  border: 1px solid var(--cs-border);
+  border-radius: 12px;
+  background: var(--cs-surface-alt);
+  padding: 1rem 1.1rem 1.1rem;
+  margin-bottom: 1.5rem;
+}
+
+.simTitle {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 0.6rem;
+}
+
+.tapeRow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.tapeLabel {
+  font-size: 0.8rem;
+  color: var(--cs-text-muted);
+  flex: none;
+}
+
+.tape {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.tapeEmpty {
+  font-family: var(--ifm-font-family-monospace);
+  color: var(--cs-text-muted);
+  padding: 0.2rem 0.4rem;
+}
+
+.tapeCell {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.92rem;
+  min-width: 1.6rem;
+  text-align: center;
+  padding: 0.2rem 0.3rem;
+  border: 1px solid var(--cs-border);
+  border-radius: 5px;
+  background: var(--cs-surface);
+}
+
+.tapeCellDone {
+  opacity: 0.42;
+  text-decoration: line-through;
+}
+
+.tapeCellNext {
+  border-color: var(--cs-active);
+  background: var(--cs-active-soft);
+  font-weight: 700;
+}
+
+.tapeEnd {
+  color: var(--cs-text-muted);
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.7rem;
+}
+
+.stepCount {
+  font-size: 0.8rem;
+  color: var(--cs-text-muted);
+  margin-left: 0.2rem;
+}
+
+.note {
+  font-size: 0.87rem;
+  line-height: 1.6;
+  padding: 0.55rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--cs-border);
+  background: var(--cs-surface);
+  font-family: var(--ifm-font-family-monospace);
+}
+
+.noteAccept {
+  border-color: var(--cs-accept);
+  background: var(--cs-accept-soft);
+}
+
+.noteReject {
+  border-color: var(--cs-reject);
+  background: var(--cs-reject-soft);
+}
+
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-top: 0.7rem;
+}
+
+.textInput {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.88rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--cs-border);
+  border-radius: 6px;
+  background: var(--cs-surface);
+  color: var(--ifm-font-color-base);
+  min-width: 12rem;
+  flex: 1 1 12rem;
+}
+
+.textInput:focus {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 1px;
+}
+
+.sample {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.8rem;
+  padding: 0.28rem 0.55rem;
+  border: 1px solid var(--cs-border);
+  border-radius: 6px;
+  background: var(--cs-surface);
+  color: var(--ifm-font-color-base);
+  cursor: pointer;
+}
+
+.sample:hover {
+  border-color: var(--ifm-color-primary);
+  color: var(--ifm-color-primary);
+}
+
+.sampleActive {
+  border-color: var(--ifm-color-primary);
+  background: var(--cs-accent-soft);
+  font-weight: 700;
+}
+
+/* ── 부분집합 구성 표 ──────────────────────────────────── */
+
+.subset {
+  border: 1px solid var(--cs-border);
+  border-radius: 12px;
+  background: var(--cs-surface-alt);
+  padding: 1rem 1.1rem 1.1rem;
+  margin-bottom: 1.5rem;
+}
+
+.subsetTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.85rem;
+  margin-bottom: 0.7rem;
+}
+
+.subsetTable th,
+.subsetTable td {
+  border: 1px solid var(--cs-border);
+  padding: 0.35rem 0.55rem;
+  text-align: left;
+  background: var(--cs-surface);
+}
+
+.subsetTable th {
+  background: var(--cs-surface-alt);
+  white-space: nowrap;
+}
+
+.rowNew {
+  animation: none;
+}
+
+.rowNew td {
+  background: var(--cs-active-soft);
+}
+
+.rowAccepting td:first-child {
+  border-left: 3px solid var(--cs-accept);
+  font-weight: 700;
+}
+
+.pending {
+  color: var(--cs-text-muted);
+}

@@ -1,0 +1,599 @@
+---
+id: finite-automata
+title: 5. 유한 오토마타
+sidebar_label: 5. 유한 오토마타
+sidebar_position: 3
+description: DFA와 NFA의 형식적 정의, ε-전이, 전이표와 전이도, 그리고 직접 돌려 보는 시뮬레이터.
+---
+
+import AutomatonDiagram from '@site/src/components/automata/AutomatonDiagram';
+import AutomatonSimulator from '@site/src/components/automata/AutomatonSimulator';
+
+export const dfaAbb = {
+  start: 'q0',
+  width: 520,
+  height: 146,
+  states: [
+    {id: 'q0', x: 60, y: 80},
+    {id: 'q1', x: 190, y: 80},
+    {id: 'q2', x: 320, y: 80},
+    {id: 'q3', x: 450, y: 80, accepting: true},
+  ],
+  edges: [
+    {from: 'q0', to: 'q0', label: 'b'},
+    {from: 'q0', to: 'q1', label: 'a'},
+    {from: 'q1', to: 'q1', label: 'a'},
+    {from: 'q1', to: 'q2', label: 'b'},
+    {from: 'q2', to: 'q1', label: 'a'},
+    {from: 'q2', to: 'q3', label: 'b'},
+    {from: 'q3', to: 'q1', label: 'a', bend: -58},
+    {from: 'q3', to: 'q0', label: 'b', bend: -112},
+  ],
+};
+
+export const nfaAbb = {
+  start: 'n0',
+  width: 500,
+  height: 108,
+  states: [
+    {id: 'n0', x: 60, y: 80},
+    {id: 'n1', x: 190, y: 80},
+    {id: 'n2', x: 320, y: 80},
+    {id: 'n3', x: 450, y: 80, accepting: true},
+  ],
+  edges: [
+    {from: 'n0', to: 'n0', label: 'a, b'},
+    {from: 'n0', to: 'n1', label: 'a'},
+    {from: 'n1', to: 'n2', label: 'b'},
+    {from: 'n2', to: 'n3', label: 'b'},
+  ],
+};
+
+export const epsNfa = {
+  start: 's0',
+  width: 440,
+  height: 250,
+  states: [
+    {id: 's0', x: 60, y: 130},
+    {id: 's1', x: 200, y: 60},
+    {id: 's2', x: 340, y: 60, accepting: true},
+    {id: 's3', x: 200, y: 200},
+    {id: 's4', x: 340, y: 200, accepting: true},
+  ],
+  edges: [
+    {from: 's0', to: 's1', label: 'ε'},
+    {from: 's0', to: 's3', label: 'ε'},
+    {from: 's1', to: 's2', label: 'a'},
+    {from: 's2', to: 's2', label: 'a'},
+    {from: 's3', to: 's4', label: 'b'},
+    {from: 's4', to: 's4', label: 'b'},
+  ],
+};
+
+export const dfaEvenA = {
+  start: 'even',
+  width: 340,
+  height: 100,
+  states: [
+    {id: 'even', label: 'E', x: 70, y: 90, accepting: true},
+    {id: 'odd', label: 'O', x: 250, y: 90},
+  ],
+  edges: [
+    {from: 'even', to: 'even', label: 'b'},
+    {from: 'odd', to: 'odd', label: 'b'},
+    {from: 'even', to: 'odd', label: 'a'},
+    {from: 'odd', to: 'even', label: 'a'},
+  ],
+};
+
+# 5. 유한 오토마타
+
+정규 표현은 **무엇을** 인식할지 적는 표기법이었다.
+**유한 오토마타(finite automata)** 는 그것을 **어떻게** 인식할지 나타내는 기계다.
+
+이 장의 목표는 하나다.
+
+> 정규 표현으로 적은 토큰 명세가, 어떻게 입력 문자당 상수 시간에
+> 돌아가는 프로그램이 되는가.
+
+---
+
+## 5.1 결정적 유한 오토마타 (DFA)
+
+:::info[정의 — DFA]
+
+**DFA(Deterministic Finite Automaton)** 는 다섯 쌍
+$M = (Q, \Sigma, \delta, q_0, F)$ 이다.
+
+| 요소 | 이름 | 설명 |
+|---|---|---|
+| $Q$ | 상태 집합 | 유한 집합 |
+| $\Sigma$ | 입력 알파벳 | 유한 집합 |
+| $\delta$ | 전이 함수 | $\delta : Q \times \Sigma \to Q$ |
+| $q_0$ | 시작 상태 | $q_0 \in Q$ |
+| $F$ | 종결 상태 집합 | $F \subseteq Q$ |
+:::
+
+**결정적**이라는 말의 뜻은 $\delta$ 가 **함수**라는 것이다.
+어떤 상태에서 어떤 입력 기호를 보든, 갈 곳이 **정확히 하나** 정해진다.
+선택의 여지가 없으므로 되돌아갈(backtrack) 필요도 없다.
+
+### 확장 전이 함수
+
+$\delta$ 는 기호 하나에 대한 전이다.
+스트링 전체에 대한 전이는 $\hat{\delta} : Q \times \Sigma^* \to Q$ 로 확장한다.
+
+$$
+\hat{\delta}(q, \varepsilon) = q
+$$
+
+$$
+\hat{\delta}(q, wa) = \delta(\hat{\delta}(q, w),\ a)
+$$
+
+그러면 $M$ 이 인식하는 언어는
+
+$$
+L(M) = \{\, w \in \Sigma^* \mid \hat{\delta}(q_0, w) \in F \,\}
+$$
+
+즉 **시작 상태에서 출발해 스트링을 다 읽었을 때 종결 상태에 있으면 수락**이다.
+
+### 예제 — `(a|b)*abb`
+
+[4장](/docs/regular/regular-expressions)에서 본 정규 표현 `(a|b)*abb`,
+즉 "`abb`로 끝나는 스트링"을 인식하는 DFA다.
+
+<AutomatonDiagram
+  spec={dfaAbb}
+  caption="(a|b)*abb 를 인식하는 DFA. 이중 원이 종결 상태."
+/>
+
+**전이표**로 쓰면 이렇다. 구현할 때는 이 표가 그대로 2차원 배열이 된다.
+
+| 상태 | `a` | `b` |
+|---|---|---|
+| → q0 | q1 | q0 |
+| q0의 의미 | *아직 아무것도 못 봄* | |
+| q1 | q1 | q2 |
+| q1의 의미 | *`a`를 봄* | |
+| q2 | q1 | q3 |
+| q2의 의미 | *`ab`를 봄* | |
+| \* q3 | q1 | q0 |
+| q3의 의미 | *`abb`를 봄 — 수락* | |
+
+:::tip[상태에 의미를 붙여서 읽자]
+DFA의 상태는 **"지금까지 읽은 것 중 앞으로 필요한 정보"** 를 기억한다.
+여기서는 "목표 패턴 `abb` 중 몇 글자까지 맞췄는가"다.
+
+q2에서 `a`를 보면 q0이 아니라 **q1**로 간다는 데 주목하자.
+`aba`에서 마지막 `a`는 새로운 매치의 시작이 될 수 있기 때문이다.
+이 "실패했을 때 어디로 돌아가는가"가 바로
+KMP 문자열 검색 알고리즘의 실패 함수와 같은 아이디어다.
+:::
+
+### 직접 돌려 보기
+
+버튼을 눌러 한 글자씩 진행해 보자. 입력을 직접 고칠 수도 있다.
+
+<AutomatonSimulator
+  spec={dfaAbb}
+  title="DFA 시뮬레이터 — (a|b)*abb"
+  defaultInput="ababb"
+  samples={['abb', 'ababb', 'abba', 'aabb', 'b', '']}
+/>
+
+`abba`를 넣어 보라. q3까지 갔다가 마지막 `a`에서 q1으로 되돌아와
+거부되는 것을 볼 수 있다.
+
+### 또 하나의 예 — `a`가 짝수 개
+
+상태가 **유한한 정보**만 기억하면 되는 전형적인 경우다.
+`a`를 몇 개 봤는지가 아니라 **짝수인지 홀수인지**만 알면 된다.
+
+<AutomatonSimulator
+  spec={dfaEvenA}
+  title="DFA 시뮬레이터 — a가 짝수 개"
+  defaultInput="abba"
+  samples={['', 'aa', 'aba', 'abba', 'bbb', 'aaa']}
+/>
+
+[3장](/docs/regular/regular-languages#34-정규언어의-한계)에서 말한
+"유한한 정보는 기억하지만 무한한 정보는 기억하지 못한다"가
+이 두 상태에 그대로 드러난다.
+
+### 완전성과 죽은 상태
+
+위 정의의 $\delta$ 는 **전함수(total function)** 다.
+즉 모든 $(q, a)$ 쌍에 대해 값이 정의되어 있어야 한다.
+
+실제로 그림을 그릴 때는 "갈 곳 없음"을 생략하는 경우가 많은데,
+형식적으로는 **죽은 상태(dead state, trap state)** 를 하나 추가해서
+모든 미정의 전이를 거기로 보낸 것으로 본다.
+
+```mermaid
+flowchart LR
+    q0(("q0")) -->|a| q1((("q1")))
+    q0 -->|b| D(("dead"))
+    q1 -->|"a, b"| D
+    D -->|"a, b"| D
+    style D fill:#fdeceb,stroke:#d93025
+```
+
+:::caution[여집합을 만들 때 완전성이 중요하다]
+[3장의 폐포 성질](/docs/regular/regular-languages#33-정규언어의-폐포-성질)에서
+"종결 상태를 뒤집으면 여집합"이라고 했다.
+이때 죽은 상태가 없으면 안 된다.
+죽은 상태가 뒤집혀 **종결 상태가 되어야** 원래 거부되던 스트링이 수락되기 때문이다.
+:::
+
+---
+
+## 5.2 비결정적 유한 오토마타 (NFA)
+
+:::info[정의 — NFA]
+
+**NFA(Nondeterministic Finite Automaton)** 도 다섯 쌍
+$M = (Q, \Sigma, \delta, q_0, F)$ 이지만, 전이 함수의 공역이 다르다.
+
+$$
+\delta : Q \times \Sigma \to 2^{Q}
+$$
+
+즉 하나의 (상태, 기호) 쌍에 대해 **상태의 집합**을 돌려준다.
+집합이 비어 있을 수도(갈 곳 없음), 원소가 여럿일 수도(선택지 여럿) 있다.
+:::
+
+수락 조건은 "**어떤 경로 하나라도** 종결 상태에 도달하면 수락"이다.
+
+$$
+L(M) = \{\, w \mid \hat{\delta}(q_0, w) \cap F \neq \emptyset \,\}
+$$
+
+### 왜 비결정성을 허용하는가
+
+`(a|b)*abb` 의 NFA를 보자. DFA보다 훨씬 **정규 표현을 닮았다**.
+
+<AutomatonDiagram
+  spec={nfaAbb}
+  caption="(a|b)*abb 를 인식하는 NFA. n0에서 a를 보면 머무를 수도, n1로 갈 수도 있다."
+/>
+
+n0에서 `a`를 읽었을 때 갈 곳이 **둘**이다.
+
+$$
+\delta(n_0, a) = \{n_0,\ n_1\}
+$$
+
+"여기가 `abb`의 시작일지도 모르니 n1으로도 가 보고,
+아닐지도 모르니 n0에도 남아 있자"라는 뜻이다.
+
+:::note[비결정성의 두 가지 해석]
+- **추측(guessing)** — 기계가 올바른 선택을 알아맞힌다고 상상한다. 이론적 해석.
+- **병렬 탐색(parallel exploration)** — 모든 선택지를 동시에 따라간다. 구현적 해석.
+
+시뮬레이터는 후자로 구현되어 있다. 매 단계에서
+**활성 상태의 집합**을 들고 다니며 전부 갱신한다.
+:::
+
+<AutomatonSimulator
+  spec={nfaAbb}
+  title="NFA 시뮬레이터 — (a|b)*abb (여러 상태가 동시에 활성)"
+  defaultInput="ababb"
+  samples={['abb', 'ababb', 'abba', 'aabb']}
+/>
+
+`ababb`를 한 단계씩 진행하며 활성 상태가 갈라졌다 합쳐지는 것을 확인하자.
+`aba`까지 읽으면 활성 상태가 두 개다 —
+"n0에 머문 갈래"와 "마지막 `a`를 시작으로 본 갈래".
+
+### NFA와 DFA의 트레이드오프
+
+| | NFA | DFA |
+|---|---|---|
+| 상태 수 | 정규 표현 크기에 **선형** | 최악의 경우 **지수** |
+| 한 글자 처리 비용 | 활성 상태 집합 갱신, $O(\|Q\|)$ | 배열 접근 1회, $O(1)$ |
+| 만들기 | 정규 표현에서 기계적으로 쉽다 | 부분집합 구성 필요 |
+| 표현력 | \-\- **완전히 같다** \-\- | |
+
+핵심은 마지막 줄이다.
+
+:::info[정리 (Rabin–Scott, 1959)]
+모든 NFA에 대해, 같은 언어를 인식하는 DFA가 존재한다.
+
+증명은 구성적이다 —
+[다음 장](/docs/regular/representations#63-nfa--dfa-부분집합-구성)의
+**부분집합 구성(subset construction)** 이 그 구성법이다.
+:::
+
+이 정리가 lex의 존재 근거다.
+**정규 표현 → NFA(쉽다) → DFA(기계적) → 배열 두 개**라는
+파이프라인 전체가 자동화 가능하다는 뜻이기 때문이다.
+
+---
+
+## 5.3 ε-전이
+
+NFA를 더 편하게 만들기 위해, **입력을 읽지 않고** 상태를 옮기는
+**ε-전이(epsilon transition)** 를 허용할 수 있다.
+
+$$
+\delta : Q \times (\Sigma \cup \{\varepsilon\}) \to 2^{Q}
+$$
+
+이렇게 확장한 것을 **ε-NFA** 또는 **NFA-ε** 라 한다.
+
+### 예제 — `aa*` 또는 `bb*`
+
+<AutomatonSimulator
+  spec={epsNfa}
+  title="ε-NFA 시뮬레이터 — aa* | bb*"
+  defaultInput="aaa"
+  samples={['a', 'aaa', 'b', 'bb', 'ab', '']}
+/>
+
+시작하자마자 활성 상태가 **셋**이라는 데 주목하자.
+아무것도 읽지 않았는데 s0, s1, s3가 모두 활성이다.
+
+### ε-closure
+
+이것을 형식화한 것이 **ε-closure** 다.
+
+:::info[정의 — ε-closure]
+
+상태 집합 $T$ 에 대해 $\varepsilon\text{-closure}(T)$ 는
+$T$ 의 원소에서 **ε-전이만을 따라** 도달할 수 있는 모든 상태의 집합이다
+(자기 자신 포함).
+
+깊이 우선 탐색으로 계산한다.
+
+```
+ε-closure(T):
+    stack ← T 의 모든 원소
+    result ← T
+    while stack 이 비어 있지 않은 동안:
+        q ← stack.pop()
+        for each p in δ(q, ε):
+            if p ∉ result:
+                result ← result ∪ {p}
+                stack.push(p)
+    return result
+```
+:::
+
+위 예에서 $\varepsilon\text{-closure}(\{s_0\}) = \{s_0, s_1, s_3\}$ 다.
+
+ε-NFA의 한 단계는 항상 **두 부분**으로 이루어진다.
+
+1. **move** — 현재 집합에서 기호 $a$ 로 갈 수 있는 상태들
+2. **ε-closure** — 거기서 다시 ε로 도달 가능한 상태들까지 확장
+
+$$
+T_{i+1} = \varepsilon\text{-closure}\big(\text{move}(T_i,\ a)\big)
+$$
+
+이 한 줄이 [부분집합 구성](/docs/regular/representations)의 핵심 공식이다.
+기억해 두자.
+
+### ε-전이는 표현력을 늘리지 않는다
+
+:::info[정리]
+모든 ε-NFA에 대해, 같은 언어를 인식하는 ε 없는 NFA가 존재한다.
+:::
+
+**증명 스케치.** 각 상태 $q$ 와 기호 $a$ 에 대해
+
+$$
+\delta'(q, a) = \varepsilon\text{-closure}\big(\delta(\varepsilon\text{-closure}(q),\ a)\big)
+$$
+
+로 새 전이 함수를 정의하고,
+$\varepsilon\text{-closure}(q) \cap F \neq \emptyset$ 인 $q$ 를 종결 상태에 추가한다.
+
+즉 **ε-전이를 미리 다 따라가서 전이 함수에 흡수**시키는 것이다.
+
+따라서 표현력의 위계는 이렇다.
+
+$$
+\text{정규 표현} \;\equiv\; \varepsilon\text{-NFA} \;\equiv\; \text{NFA} \;\equiv\; \text{DFA} \;\equiv\; \text{정규 문법}
+$$
+
+**다섯 가지가 전부 같은 것을 표현한다.**
+서로 다른 것은 표현력이 아니라 **편의성과 크기**뿐이다.
+
+```mermaid
+flowchart LR
+    RE["정규 표현"] -->|"Thompson 구성"| EN["ε-NFA"]
+    EN -->|"ε 제거"| N["NFA"]
+    N -->|"부분집합 구성"| D["DFA"]
+    D -->|"최소화"| M["최소 DFA"]
+    M -->|"상태 소거"| RE
+    D -->|"직접 대응"| RG["정규 문법"]
+    RG --> N
+```
+
+이 그림의 각 화살표를 [다음 장](/docs/regular/representations)에서 하나씩 채운다.
+
+---
+
+## 5.4 유한 오토마타의 구현
+
+이론을 코드로 옮기는 방법은 두 가지다.
+
+### 방법 1 — 전이표 구동 (table-driven)
+
+전이 함수를 2차원 배열에 넣고 루프를 돈다.
+
+```c
+/* (a|b)*abb 를 인식하는 DFA */
+#include <stdio.h>
+#include <string.h>
+
+#define NSTATES 4
+#define DEAD   -1
+
+/* delta[state][symbol]  — symbol: 0='a', 1='b' */
+static const int delta[NSTATES][2] = {
+    /*        a   b  */
+    /* q0 */ {1,  0},
+    /* q1 */ {1,  2},
+    /* q2 */ {1,  3},
+    /* q3 */ {1,  0},
+};
+
+static const int accepting[NSTATES] = {0, 0, 0, 1};
+
+int matches(const char *s) {
+    int state = 0;                    /* q0 */
+    for (; *s; s++) {
+        int col;
+        if      (*s == 'a') col = 0;
+        else if (*s == 'b') col = 1;
+        else return 0;                /* 알파벳 밖의 문자 */
+        state = delta[state][col];
+        if (state == DEAD) return 0;
+    }
+    return accepting[state];
+}
+```
+
+`matches`의 루프는 **입력 문자당 배열 접근 두 번**이다.
+입력 길이에 정확히 선형이고, 상수가 아주 작다.
+
+:::tip[lex가 생성하는 코드가 바로 이것이다]
+`flex`로 스캐너를 만들면 `yy_nxt`, `yy_accept` 같은 이름의
+거대한 정적 배열이 생성된다. 위 `delta`와 `accepting`의
+압축된 버전이다.
+
+직접 확인해 보자.
+```bash
+flex -o scanner.c scanner.l
+grep -n "yy_nxt\|yy_accept" scanner.c | head
+```
+:::
+
+### 방법 2 — 직접 코딩 (direct-coded)
+
+상태를 코드의 위치로 표현한다. 표 접근이 없어 더 빠를 수 있다.
+
+```c
+int matches_direct(const char *s) {
+q0: if (*s == 'a') { s++; goto q1; }
+    if (*s == 'b') { s++; goto q0; }
+    return 0;
+q1: if (*s == 'a') { s++; goto q1; }
+    if (*s == 'b') { s++; goto q2; }
+    return 0;
+q2: if (*s == 'a') { s++; goto q1; }
+    if (*s == 'b') { s++; goto q3; }
+    return 0;
+q3: if (*s == '\0') return 1;         /* 수락 */
+    if (*s == 'a') { s++; goto q1; }
+    if (*s == 'b') { s++; goto q0; }
+    return 0;
+}
+```
+
+:::note[re2c가 이 방식을 쓴다]
+`goto`가 흉해 보이지만, 이것이 **상태 = 프로그램 카운터** 라는
+가장 직접적인 구현이다.
+현대적인 어휘 분석기 생성기 [re2c](https://re2c.org/)는
+표 대신 이런 직접 코드를 생성해 캐시 효율을 높인다.
+자세한 비교는 [도구 지형도](/docs/modern/toolchain-map)에서 다룬다.
+:::
+
+### NFA를 그대로 시뮬레이션하기
+
+DFA로 변환하지 않고 NFA를 직접 돌릴 수도 있다.
+활성 상태 집합을 비트 집합으로 들고 다닌다.
+
+```c
+/* 상태가 64개 이하면 uint64_t 하나로 집합을 표현할 수 있다 */
+#include <stdint.h>
+
+uint64_t step(uint64_t cur, char c, const uint64_t trans[][128]) {
+    uint64_t next = 0;
+    for (int q = 0; q < 64; q++)
+        if (cur & (1ULL << q))
+            next |= trans[q][(unsigned char)c];
+    return next;
+}
+```
+
+시간 복잡도는 $O(|w| \cdot |Q|)$ 로 DFA보다 느리지만,
+**상태 폭발이 없다**는 장점이 있다.
+
+:::info[어느 쪽을 언제 쓰는가]
+- **어휘 분석기** — 같은 패턴으로 거대한 입력을 훑는다.
+  DFA 변환 비용을 한 번 치르고 $O(1)$/문자를 얻는 것이 압도적으로 유리하다.
+  → **DFA**
+- **범용 정규식 라이브러리** — 패턴이 매번 다르고 입력은 짧을 수 있다.
+  DFA 변환이 지수 폭발할 위험이 있으므로 NFA 시뮬레이션이 안전하다.
+  → **NFA** (또는 lazy DFA — 필요한 DFA 상태만 그때그때 만들어 캐시)
+
+Go의 `regexp`와 RE2가 lazy DFA 방식을 쓴다.
+:::
+
+---
+
+## 5.5 오토마타의 상태 폭발
+
+NFA→DFA 변환이 항상 싼 것은 아니다.
+
+**예제.** `(a|b)*a(a|b)^{n-1}` — "뒤에서 $n$번째 글자가 `a`".
+
+- NFA: 상태 $n+1$ 개
+- DFA: 상태 $2^n$ 개 (최소화해도)
+
+왜 그럴까? DFA는 결정적이므로 **마지막 $n$글자를 전부 기억**해야 하고,
+그 조합이 $2^n$ 가지이기 때문이다.
+NFA는 "지금 여기가 뒤에서 $n$번째라고 추측"할 수 있으므로 기억할 필요가 없다.
+
+:::caution[실무적 함의]
+lex 입력 파일에 이런 패턴을 넣으면 생성된 스캐너가 폭발적으로 커진다.
+`flex -v` 로 상태 수를 확인하는 습관을 들이자.
+
+```bash
+flex -v scanner.l 2>&1 | grep -E "DFA states|NFA states"
+```
+
+`.{10}$` 같은 "끝에서 몇 번째" 패턴이 대표적인 폭발 유발 패턴이다.
+:::
+
+---
+
+## 요약
+
+- **DFA** $(Q, \Sigma, \delta, q_0, F)$ 는 $\delta$ 가 상태 **하나**를 돌려주는 결정적 기계다.
+  한 문자당 $O(1)$, 되돌아가지 않는다.
+- **NFA**는 $\delta$ 가 상태의 **집합**을 돌려준다.
+  "어떤 경로 하나라도 수락하면 수락"이다.
+- **ε-NFA**는 입력을 읽지 않는 전이를 허용한다. **ε-closure**로 처리한다.
+- 한 단계 = $\varepsilon\text{-closure}(\text{move}(T, a))$. 이 공식이 부분집합 구성의 핵심이다.
+- **정규 표현 ≡ ε-NFA ≡ NFA ≡ DFA ≡ 정규 문법** — 다섯 가지의 표현력은 완전히 같다.
+  다른 것은 크기와 편의성뿐이다.
+- 구현은 **전이표 구동**(flex)과 **직접 코딩**(re2c) 두 방식이 있다.
+- NFA→DFA 변환은 최악의 경우 **상태를 지수적으로 늘린다**.
+  "끝에서 $n$번째" 패턴이 대표적이다.
+
+## 확인 문제
+
+1. 다음 언어를 인식하는 DFA를 그려라. ($\Sigma = \{0,1\}$)
+   - (a) `01`로 끝나는 스트링
+   - (b) 3의 배수인 이진수 (앞자리부터 읽음)
+   - (c) `000`을 부분 스트링으로 포함하지 않는 스트링
+2. 위 (b)의 상태에 각각 어떤 "의미"를 붙일 수 있는가?
+   (힌트: 지금까지 읽은 값을 3으로 나눈 나머지)
+3. `(a|b)*abb` 의 NFA에서 입력 `aabb`를 읽을 때
+   각 단계의 활성 상태 집합을 손으로 계산하고, 시뮬레이터와 비교하라.
+4. 아래 ε-NFA에서 $\varepsilon\text{-closure}(\{s_0\})$ 와
+   $\varepsilon\text{-closure}(\text{move}(\{s_0,s_1,s_3\},\ a))$ 를 구하라.
+   (본문의 `aa*|bb*` 예제를 쓰면 된다)
+5. "뒤에서 3번째 글자가 `a`"를 인식하는 최소 DFA의 상태 수가
+   왜 8개인지 설명하라.
+6. 전이표 구동 방식과 직접 코딩 방식 각각의 장단점을 정리하라.
+   상태가 500개인 스캐너라면 어느 쪽이 유리할까?
+
+---
+
+다음 장에서는 이 다섯 가지 표현 사이를 **실제로 오가는 알고리즘**을 다룬다.

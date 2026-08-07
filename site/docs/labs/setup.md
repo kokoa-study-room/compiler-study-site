@@ -32,7 +32,7 @@ cc --version
 make --version
 ```
 
-:::caution macOS의 bison은 2.3으로 오래되었다
+:::caution[macOS의 bison은 2.3으로 오래되었다]
 Apple이 번들하는 bison은 GPLv2 시절 버전인 **2.3**이다.
 교안의 예제는 이 버전에서도 동작하도록 작성했지만,
 `%define api.value.type`, `%locations`의 최신 문법,
@@ -120,7 +120,7 @@ WORD(x)
 NUM(9)
 ```
 
-:::note `yywrap`이 뭔가요?
+:::note[`yywrap`이 뭔가요?]
 flex가 입력 끝(EOF)에 도달하면 `yywrap()`을 호출한다.
 0을 반환하면 "다른 파일을 이어서 읽겠다", 1을 반환하면 "여기서 끝"이라는 뜻이다.
 정의하지 않으면 `-lfl` 라이브러리를 링크해야 하는데,
@@ -211,7 +211,7 @@ make test
 | `bison -Wcounterexamples` | 충돌 시 실제 충돌 입력 예시 생성 (bison 3.8+) |
 | `bison -g foo.y` | 오토마타를 Graphviz `.dot` 로 출력 |
 
-:::tip 지금 바로 해 볼 것
+:::tip[지금 바로 해 볼 것]
 `bison -v` 로 나오는 `.output` 파일을 한 번 열어 보자.
 `State 0`, `State 1` … 아래에 적힌 것이
 [LR 구문 분석](/docs/parsing/lr-parsing) 장에서 손으로 만들게 될
@@ -259,3 +259,4 @@ bison이 헤더를 먼저 생성해야 한다. Makefile의 의존 순서를 확�
 
 환경이 준비되었다면 [1장 컴파일러 개요](/docs/foundations/compiler-overview)부터 읽어 나가고,
 3부에 도달하면 [LEX 실습](/docs/labs/lex-labs)으로 돌아오면 된다.
+

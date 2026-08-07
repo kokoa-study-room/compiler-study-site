@@ -31,6 +31,24 @@ const sidebars: SidebarsConfig = {
         'foundations/language-and-grammar',
       ],
     },
+    {
+      type: 'category',
+      label: '2부 · 정규언어와 유한 오토마타',
+      collapsed: false,
+      link: {
+        type: 'generated-index',
+        title: '2부 · 정규언어와 유한 오토마타',
+        description:
+          '어휘 분석기의 이론적 토대. 정규언어를 정의하고, 정규 표현과 유한 오토마타가 같은 표현력을 가진다는 사실과 그 상호 변환을 다룬다.',
+        slug: '/category/regular',
+      },
+      items: [
+        'regular/regular-languages',
+        'regular/regular-expressions',
+        'regular/finite-automata',
+        'regular/representations',
+      ],
+    },
   ],
 
   labSidebar: ['labs/setup'],

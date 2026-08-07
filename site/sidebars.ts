@@ -15,6 +15,7 @@ import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
 const sidebars: SidebarsConfig = {
   courseSidebar: [
     'intro',
+    'prerequisites',
     {
       type: 'category',
       label: '1부 · 기초',

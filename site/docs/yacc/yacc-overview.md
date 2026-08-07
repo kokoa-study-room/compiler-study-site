@@ -315,7 +315,7 @@ stmt : IF '(' expr ')' @1 stmt ;
 
 ## 18.6 lex와 결합하기
 
-[8장에서 예고한](/docs/lex/lex-input-and-parsing#85-파서와-결합하기)
+[8장에서 예고한](/docs/lex/lex-input-and-parsing#86-파서와-결합하기)
 세 가지 계약을 실제 코드로 보자.
 
 ### 스캐너 쪽

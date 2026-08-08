@@ -17,7 +17,7 @@ const config: Config = {
     v4: true,
   },
 
-  url: 'https://compiler-study.example.com',
+  url: 'https://compiler-study.shinkeonkim.com',
   baseUrl: '/',
 
   organizationName: 'compiler-study',

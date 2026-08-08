@@ -146,7 +146,10 @@ examples/
 ├── 05-recursive-descent/ # 손으로 쓴 LL(1) 계산기
 ├── 06-lr-table-driven/   # 손으로 쓴 표 구동 LR 파서
 ├── 07-yacc-calc/         # flex + bison 계산기
-└── 08-mini-compiler/     # AST → 3-주소 코드 미니 컴파일러
+├── 08-mini-compiler/     # AST → 3-주소 코드 미니 컴파일러
+├── 09-lex-reentrant/     # 재진입 스캐너 (인스턴스 여러 개)
+├── 10-operator-precedence/  # 우선 관계 표 구동 파서
+└── 11-attribute-eval/    # 속성 평가 순서 (위상 정렬)
 ```
 
 각 디렉터리에는 다음이 들어 있다.

@@ -206,7 +206,7 @@ GCC, Clang, Rust, Go, TypeScript, C# 모두 그렇다.
   **문법 밖의 규칙**을 넣기가 쉽다.
 - 부분 파싱, 취소, 재개 같은 LSP 요구를 맞추기 쉽다.
 
-교안에서 [05-recursive-descent](/docs/labs/yacc-labs#실습-5--재귀-하강-계산기-ll)를
+교안에서 [05-recursive-descent](/docs/labs/yacc-labs#실습-6--재귀-하강-계산기-ll)를
 만들어 본 것이 그래서 의미가 있다.
 :::
 

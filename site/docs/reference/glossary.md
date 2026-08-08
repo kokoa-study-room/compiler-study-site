@@ -63,7 +63,7 @@ description: 교안에 나온 용어의 한국어·영어 대조와 짧은 정�
 | ε-전이 | epsilon transition | 입력을 읽지 않는 전이 | [5](/docs/regular/finite-automata#53-ε-전이) |
 | ε-closure | epsilon closure | ε 로만 도달 가능한 상태 전부 | [5](/docs/regular/finite-automata#53-ε-전이) |
 | 죽은 상태 | dead / trap state | 어떤 입력으로도 수락될 수 없는 상태 | [5](/docs/regular/finite-automata#완전성과-죽은-상태) |
-| 완전 DFA | complete / total DFA | 모든 (상태, 입력) 짝에 전이가 정의된 DFA | [5](/docs/regular/finite-automata#완전성과-죽은-상태) |
+| 전함수 | total function | 모든 (상태, 입력) 짝에 값이 정의된 $\delta$. 이런 DFA를 **완전하다**고 한다 | [5](/docs/regular/finite-automata#완전성과-죽은-상태) |
 | 상태 폭발 | state explosion | NFA 상태 $n$ 개가 DFA 상태 최대 $2^n$ 개가 되는 현상 | [5](/docs/regular/finite-automata#55-오토마타의-상태-폭발) |
 | Thompson 구성 | Thompson's construction | 정규 표현 → ε-NFA | [6](/docs/regular/representations#62-정규-표현--nfa-thompson-구성) |
 | 부분집합 구성 | subset construction | NFA → DFA | [6](/docs/regular/representations#63-nfa--dfa-부분집합-구성) |
@@ -80,7 +80,7 @@ description: 교안에 나온 용어의 한국어·영어 대조와 짧은 정�
 | 한국어 | 영어 | 뜻 | 장 |
 |---|---|---|---|
 | 어휘 분석 | lexical analysis | 문자 → 토큰 | [1](/docs/foundations/compiler-overview#-어휘-분석-lexical-analysis) |
-| 스캐너 / 토크나이저 | scanner / tokenizer | 어휘 분석기 | [1](/docs/foundations/compiler-overview#-어휘-분석-lexical-analysis) |
+| 스캐너 | scanner (= tokenizer, 토크나이저) | 어휘 분석을 수행하는 프로그램 | [1](/docs/foundations/compiler-overview#-어휘-분석-lexical-analysis) |
 | 토큰 | token | 의미 있는 최소 단위 | [1](/docs/foundations/compiler-overview#-어휘-분석-lexical-analysis) |
 | 렉심 | lexeme | 토큰에 대응하는 실제 문자열 | [7](/docs/lex/lex-overview) |
 | 최장 일치 | longest match / maximal munch | 가장 긴 매치를 택한다 | [8](/docs/lex/lex-input-and-parsing#최장-일치) |
@@ -90,7 +90,7 @@ description: 교안에 나온 용어의 한국어·영어 대조와 짧은 정�
 | 보초 | sentinel | 버퍼 끝에 두는 표식 문자 — 경계 검사를 한 번으로 줄인다 | [8](/docs/lex/lex-input-and-parsing#보초-기법-sentinel) |
 | 시작 조건 | start condition | 스캐너의 모드 (`%x`) | [9](/docs/lex/writing-lex-files#92-시작-조건) |
 | 기본 규칙 | default rule | 매치 안 되면 그대로 출력 | [7](/docs/lex/lex-overview#72-lex-입력-파일의-구조) |
-| 동등 클래스 | equivalence class | 전이가 같은 문자를 한 열로 압축 | [6](/docs/regular/representations) |
+| 동등 클래스 | equivalence class | 전이가 같은 문자들을 한 열로 묶어 표를 줄이는 flex 기법 | [9](/docs/lex/writing-lex-files#99-성능-관련-옵션) |
 
 ---
 
@@ -101,14 +101,14 @@ description: 교안에 나온 용어의 한국어·영어 대조와 짧은 정�
 | 구문 분석 | syntax analysis / parsing | 토큰 → 구조 | [12](/docs/parsing/syntax-analysis) |
 | 문맥 자유 문법 | context-free grammar (CFG) | 좌변이 넌터미널 하나 (유형 2) | [10](/docs/parsing/context-free-grammar) |
 | 푸시다운 오토마타 | pushdown automaton (PDA) | 유한 오토마타 + 스택 | [10](/docs/parsing/context-free-grammar#103-푸시다운-오토마타) |
-| 결정적 CFL | deterministic CFL (DCFL) | LR(1)이 인식하는 언어 부류 | [10](/docs/parsing/context-free-grammar#결정적-pda) |
+| DCFL | deterministic context-free language | 결정적 PDA가 인식하는 언어 부류. **LR(1) 문법이 인식하는 언어와 정확히 같다** | [10](/docs/parsing/context-free-grammar#결정적-pda) |
 | 좌재귀 | left recursion | $A \to A\alpha$ | [10](/docs/parsing/context-free-grammar#좌재귀-제거) |
 | 좌인수분해 | left factoring | 공통 접두사 뽑아내기 | [10](/docs/parsing/context-free-grammar#좌인수분해) |
 | 쓸모없는 심볼 | useless symbol | 도달할 수 없거나(unreachable) 터미널 열을 못 만드는(non-generating) 심볼 | [10](/docs/parsing/context-free-grammar#쓸모없는-심볼-제거) |
 | Chomsky 표준형 | Chomsky normal form (CNF) | 모든 규칙이 $A \to BC$ 또는 $A \to a$ — CYK 알고리즘의 전제 | [10](/docs/parsing/context-free-grammar#정규형-참고) |
 | Greibach 표준형 | Greibach normal form (GNF) | 모든 규칙이 $A \to a\alpha$ — 좌재귀가 원천적으로 없다 | [10](/docs/parsing/context-free-grammar#정규형-참고) |
-| 하향식 파싱 | top-down parsing | 시작 심볼에서 전개 (LL) | [12](/docs/parsing/syntax-analysis#121-두-가지-전략) |
-| 상향식 파싱 | bottom-up parsing | 토큰에서 축약 (LR) | [12](/docs/parsing/syntax-analysis#121-두-가지-전략) |
+| 하향식 | top-down | 시작 심볼에서 아래로 전개해 내려간다 (LL) | [12](/docs/parsing/syntax-analysis#121-두-가지-전략) |
+| 상향식 | bottom-up | 토큰에서 위로 축약해 올라간다 (LR) | [12](/docs/parsing/syntax-analysis#121-두-가지-전략) |
 | AST | abstract syntax tree | 의미에 필요한 것만 남긴 트리 | [12](/docs/parsing/syntax-analysis#파스-트리-vs-ast) |
 | CST | concrete syntax tree | 문법의 모든 세부를 담은 트리 | [12](/docs/parsing/syntax-analysis#파스-트리-vs-ast) |
 | FIRST | FIRST set | 첫 터미널이 될 수 있는 것들 | [12](/docs/parsing/syntax-analysis#123-first-집합) |
@@ -121,7 +121,7 @@ description: 교안에 나온 용어의 한국어·영어 대조와 짧은 정�
 | 순서 있는 선택 | ordered choice | PEG의 `/` — 먼저 성공한 대안을 택하고 나머지는 보지 않는다 | [21](/docs/modern/trends#212-peg--순서-있는-선택) |
 | 연산자 문법 | operator grammar | 우변에 넌터미널이 인접하지 않고 $\varepsilon$ 규칙도 없는 문법 | [14](/docs/parsing/operator-precedence#141-연산자-문법) |
 | 우선 관계 | precedence relation | $\lessdot\ \doteq\ \gtrdot$ — 터미널 쌍 사이의 "누가 먼저 묶이나" | [14](/docs/parsing/operator-precedence#142-우선-관계) |
-| 연산자 우선순위 파싱 | operator-precedence parsing | 우선 관계로 핸들을 찾는 상향식 파싱 | [14](/docs/parsing/operator-precedence#143-파싱-알고리즘) |
+| 연산자 우선순위 파싱 | operator-precedence parsing | 우선 관계로 핸들을 찾는 상향식 파싱 | [14](/docs/parsing/operator-precedence) |
 | 우선 함수 | precedence function | 우선 관계를 두 정수 함수 $f, g$ 로 압축한 것 | [14](/docs/parsing/operator-precedence#144-우선-함수) |
 | 이동 | shift | 토큰을 스택에 밀어 넣기 | [15](/docs/parsing/lr-parsing#151-이동-축약-파싱) |
 | 축약 | reduce | 우변을 좌변으로 바꾸기 | [15](/docs/parsing/lr-parsing#151-이동-축약-파싱) |
@@ -155,7 +155,7 @@ description: 교안에 나온 용어의 한국어·영어 대조와 짧은 정�
 | 상속 속성 | inherited attribute | 부모·왼쪽 형제의 속성으로 자식을 정한다 (위 → 아래) | [17](/docs/parsing/syntax-directed-translation#172-두-종류의-속성) |
 | 구문 지향 정의 | syntax-directed definition (SDD) | 규칙마다 의미 규칙을 붙인 문법. **무엇**을 계산할지만 말한다 | [17](/docs/parsing/syntax-directed-translation#173-sdd와-주석-달린-파스-트리) |
 | 구문 지향 번역 | syntax-directed translation (SDT) | 의미 규칙을 실행 시점까지 정해 액션으로 심은 것. **언제**까지 말한다 | [17](/docs/parsing/syntax-directed-translation#176-sdd와-sdt) |
-| 의미 규칙 | semantic rule | 속성값을 정하는 식 $A.a := f(\dots)$ | [17](/docs/parsing/syntax-directed-translation#171-속성) |
+| 의미 규칙 | semantic rule | 속성값을 정하는 식 $A.a := f(\dots)$ | [17](/docs/parsing/syntax-directed-translation#173-sdd와-주석-달린-파스-트리) |
 | 주석 달린 파스 트리 | annotated parse tree | 각 노드에 속성값을 적어 넣은 파스 트리 | [17](/docs/parsing/syntax-directed-translation#173-sdd와-주석-달린-파스-트리) |
 | 의존 그래프 | dependency graph | 속성 사이의 계산 선후를 나타내는 방향 그래프. 위상 정렬이 계산 순서 | [17](/docs/parsing/syntax-directed-translation#174-의존-그래프) |
 | S-속성 문법 | S-attributed grammar | 합성 속성만 쓰는 SDD — **LR 파싱 중에 그대로 계산된다** | [17](/docs/parsing/syntax-directed-translation#s-속성-문법) |
@@ -169,10 +169,10 @@ description: 교안에 나온 용어의 한국어·영어 대조와 짧은 정�
 | 3중자 | triple | `(op, arg1, arg2)` — 결과는 자기 위치 번호로 가리킨다 | [19](/docs/yacc/yacc-grammar-and-actions#3중자-triple) |
 | 간접 3중자 | indirect triple | 3중자 배열 + 실행 순서 포인터 목록. 재배치가 싸다 | [19](/docs/yacc/yacc-grammar-and-actions#간접-3중자-indirect-triple) |
 | 점프 코드 | jump code | 부울식을 값이 아니라 제어 흐름으로 번역한 코드 | [19](/docs/yacc/yacc-grammar-and-actions#점프-코드) |
-| SSA | static single assignment | 변수마다 대입이 한 번뿐인 IR. LLVM IR이 그렇다 | [22](/docs/modern/toolchain-map#llvm) |
+| SSA | static single assignment | 변수마다 대입이 한 번뿐인 IR. LLVM IR이 그렇다 | [22](/docs/modern/toolchain-map#226-이-교안-이후) |
 | 상수 접기 | constant folding | 컴파일 시점 계산 | [1](/docs/foundations/compiler-overview#-코드-최적화) |
 | 단축 평가 | short-circuit evaluation | `&&`, `||` 의 조기 종료 | [통합](/docs/labs/mini-compiler#5-확장-과제) |
-| 백패칭 | backpatching | 점프 대상을 나중에 채우기 | [19](/docs/yacc/yacc-grammar-and-actions#196-중간-코드-생성) |
+| 백패칭 | backpatching | 점프 대상을 비워 두고 나중에 채우기 | [19](/docs/yacc/yacc-grammar-and-actions#198-백패칭--단축-평가와-점프-코드) |
 
 ---
 

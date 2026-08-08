@@ -363,6 +363,9 @@ bison -t parser.y     # 그리고 코드에서 yydebug = 1;
 | `06-lr-table-driven` | 손코딩 표 구동 LR | [16](/docs/parsing/lr-parser-implementation) |
 | `07-yacc-calc` | flex + bison | [18](/docs/yacc/yacc-overview), [20](/docs/yacc/conflicts-and-precedence) |
 | `08-mini-compiler` | 통합 — 3-주소 코드까지 | [19](/docs/yacc/yacc-grammar-and-actions) |
+| `09-lex-reentrant` | 재진입 스캐너 (`%option reentrant`) | [9](/docs/lex/writing-lex-files#910-재진입-스캐너와-유니코드) |
+| `10-operator-precedence` | 우선 관계 표 구동 파서 | [14](/docs/parsing/operator-precedence) |
+| `11-attribute-eval` | 속성 평가 순서 (위상 정렬) | [17](/docs/parsing/syntax-directed-translation) |
 
 ```bash
 cd examples && make && make test

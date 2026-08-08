@@ -43,3 +43,5 @@ examples/09-lex-reentrant/reentrant
 # Tooling caches
 .omo/
 .codegraph
+examples/10-operator-precedence/opprec
+examples/11-attribute-eval/attreval

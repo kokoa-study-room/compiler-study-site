@@ -1,0 +1,57 @@
+입력: 3 * 5 + 4
+  후위 순회 한 번으로: 가능 (S-속성)
+   # | 속성           | 종류 | 의미 규칙                  | 값           | 후위
+   1 | num.val        | 합성 | 어휘 분석기가 준다         | 3            | 0
+   2 | F.val          | 합성 | F.val := num.val           | 3            | 1
+   3 | T.val          | 합성 | T.val := F.val             | 3            | 2
+   4 | num.val        | 합성 | 어휘 분석기가 준다         | 5            | 4
+   5 | F.val          | 합성 | F.val := num.val           | 5            | 5
+   6 | T.val          | 합성 | T.val := T1.val * F.val    | 15           | 6
+   7 | E.val          | 합성 | E.val := T.val             | 15           | 7
+   8 | num.val        | 합성 | 어휘 분석기가 준다         | 4            | 9
+   9 | F.val          | 합성 | F.val := num.val           | 4            | 10
+  10 | T.val          | 합성 | T.val := F.val             | 4            | 11
+  11 | E.val          | 합성 | E.val := E1.val + T.val    | 19           | 12
+----
+입력: 2 + 3 * 4
+  후위 순회 한 번으로: 가능 (S-속성)
+   # | 속성           | 종류 | 의미 규칙                  | 값           | 후위
+   1 | num.val        | 합성 | 어휘 분석기가 준다         | 2            | 0
+   2 | F.val          | 합성 | F.val := num.val           | 2            | 1
+   3 | T.val          | 합성 | T.val := F.val             | 2            | 2
+   4 | E.val          | 합성 | E.val := T.val             | 2            | 3
+   5 | num.val        | 합성 | 어휘 분석기가 준다         | 3            | 5
+   6 | F.val          | 합성 | F.val := num.val           | 3            | 6
+   7 | T.val          | 합성 | T.val := F.val             | 3            | 7
+   8 | num.val        | 합성 | 어휘 분석기가 준다         | 4            | 9
+   9 | F.val          | 합성 | F.val := num.val           | 4            | 10
+  10 | T.val          | 합성 | T.val := T1.val * F.val    | 12           | 11
+  11 | E.val          | 합성 | E.val := E1.val + T.val    | 14           | 12
+----
+입력: ( 2 + 3 ) * 4
+  후위 순회 한 번으로: 가능 (S-속성)
+   # | 속성           | 종류 | 의미 규칙                  | 값           | 후위
+   1 | num.val        | 합성 | 어휘 분석기가 준다         | 2            | 1
+   2 | F.val          | 합성 | F.val := num.val           | 2            | 2
+   3 | T.val          | 합성 | T.val := F.val             | 2            | 3
+   4 | E.val          | 합성 | E.val := T.val             | 2            | 4
+   5 | num.val        | 합성 | 어휘 분석기가 준다         | 3            | 6
+   6 | F.val          | 합성 | F.val := num.val           | 3            | 7
+   7 | T.val          | 합성 | T.val := F.val             | 3            | 8
+   8 | E.val          | 합성 | E.val := E1.val + T.val    | 5            | 9
+   9 | F.val          | 합성 | F.val := E.val             | 5            | 11
+  10 | T.val          | 합성 | T.val := F.val             | 5            | 12
+  11 | num.val        | 합성 | 어휘 분석기가 준다         | 4            | 14
+  12 | F.val          | 합성 | F.val := num.val           | 4            | 15
+  13 | T.val          | 합성 | T.val := T1.val * F.val    | 20           | 16
+  14 | E.val          | 합성 | E.val := T.val             | 20           | 17
+----
+입력: 7
+  후위 순회 한 번으로: 가능 (S-속성)
+   # | 속성           | 종류 | 의미 규칙                  | 값           | 후위
+   1 | num.val        | 합성 | 어휘 분석기가 준다         | 7            | 0
+   2 | F.val          | 합성 | F.val := num.val           | 7            | 1
+   3 | T.val          | 합성 | T.val := F.val             | 7            | 2
+   4 | E.val          | 합성 | E.val := T.val             | 7            | 3
+----
+모두 정상 처리

@@ -663,6 +663,22 @@ s2: 3 words, 1 lines
 
 두 스캐너가 각자의 개수를 따로 셌다.
 
+:::tip[돌려 볼 수 있는 예제가 있다]
+`examples/09-lex-reentrant` 가 이것을 확장한 것이다.
+스캐너 **셋**을 만들어 둘은 문자열에서, 하나는 표준 입력에서 읽는다.
+
+```bash
+cd examples/09-lex-reentrant
+make
+printf 'one two 3\nfour 56\n' | ./reentrant
+make test
+```
+
+두 스캐너에서 토큰을 **하나씩 번갈아** 꺼내는데,
+전역 변수를 쓰는 보통의 스캐너로는 첫 줄부터 불가능한 일이다.
+`tklex(a)` 가 채운 `yytext` 를 바로 다음 `tklex(b)` 가 덮어쓰기 때문이다.
+:::
+
 :::note[`prefix` 를 함께 쓴 이유]
 `%option prefix="cnt"` 는 생성되는 모든 이름의 `yy` 를 `cnt` 로 바꾼다
 (`yylex` → `cntlex`, `yylex_init` → `cntlex_init`).

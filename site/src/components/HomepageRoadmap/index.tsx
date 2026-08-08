@@ -54,8 +54,10 @@ const ROADMAP: Stop[] = [
       {label: '문법의 유형', to: '/docs/parsing/grammar-hierarchy'},
       {label: '구문 분석', to: '/docs/parsing/syntax-analysis'},
       {label: 'LL 구문 분석', to: '/docs/parsing/ll-parsing'},
+      {label: '연산자 우선순위 파싱', to: '/docs/parsing/operator-precedence'},
       {label: 'LR 구문 분석', to: '/docs/parsing/lr-parsing'},
       {label: 'LR 파서의 구현', to: '/docs/parsing/lr-parser-implementation'},
+      {label: '구문 지향 번역', to: '/docs/parsing/syntax-directed-translation'},
     ],
   },
   {

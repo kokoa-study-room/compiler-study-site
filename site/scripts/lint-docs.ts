@@ -9,6 +9,7 @@
  *  5. 링크 표시 장 번호 불일치    → 재번호 후 앵커만 고치면 남는다
  *  6. 헤딩 안의 수식             → 목차에 원본 LaTeX 이 노출된다
  *  7. 확인 문제 수 ≠ 해설 수      → 풀이가 빠진 장
+ *  8. 용어 사전의 유령 항목        → 본문에 없는 말을 정의하고 있다
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -122,6 +123,51 @@ for (const path of walk(DOCS)) {
   if (inExercises && problems !== solutions) {
     issues.push({ file, line: 0, rule: `확인 문제 ${problems}개 / 해설 ${solutions}개`, text: '' });
   }
+}
+
+/* ── 8. 용어 사전의 유령 항목 ────────────────────────────────
+ *
+ * 사전에 올린 한국어 표기가 링크한 장의 본문에 실제로 있어야 한다.
+ * 없다면 둘 중 하나다 — 본문 표기와 다른 말을 지어냈거나,
+ * 링크가 엉뚱한 장을 가리키거나.
+ *
+ * 실제로 겪은 사례: 본문은 "전함수"라고 쓰는데 사전에는 "완전 DFA"를
+ * 올려 두었다. 링크는 유효하므로 onBrokenLinks 가 잡지 못한다.
+ */
+{
+  const glossaryPath = join(DOCS, 'reference', 'glossary.md');
+  const gloss = readFileSync(glossaryPath, 'utf8');
+  const ROW = /^\| ([^|]+?) \| [^|]* \| [^|]* \| \[\d+\]\((\/docs\/[a-z\-/]+?)(?:#[^)]*)?\) \|/gm;
+  const cache = new Map<string, string>();
+
+  gloss.split('\n').forEach((line, idx) => {
+    ROW.lastIndex = 0;
+    const m = ROW.exec(line);
+    if (!m) return;
+    const term = m[1].trim();
+    const rel = m[2].replace('/docs/', '');
+    if (!cache.has(rel)) {
+      const hit = ['.md', '.mdx']
+        .map((ext) => join(DOCS, rel + ext))
+        .find((p) => {
+          try {
+            return statSync(p).isFile();
+          } catch {
+            return false;
+          }
+        });
+      cache.set(rel, hit ? readFileSync(hit, 'utf8') : '');
+    }
+    const body = cache.get(rel)!;
+    if (body && !body.includes(term)) {
+      issues.push({
+        file: 'reference/glossary.md',
+        line: idx + 1,
+        rule: `용어 사전 유령 항목 — "${term}" 이 ${rel} 본문에 없다`,
+        text: line.trim().slice(0, 100),
+      });
+    }
+  });
 }
 
 if (issues.length === 0) {

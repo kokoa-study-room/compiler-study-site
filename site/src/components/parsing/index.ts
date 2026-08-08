@@ -1,6 +1,10 @@
 export {default as LLParser} from './LLParser';
 export {default as LRParser} from './LRParser';
 export {default as FirstFollow} from './FirstFollow';
+export {default as OperatorPrecedenceParser} from './OperatorPrecedenceParser';
+export {default as AttributeEval} from './AttributeEval';
 export * from './types';
 export * from './grammars';
 export * from './simulate';
+export * from './precedence';
+export * from './attributes';

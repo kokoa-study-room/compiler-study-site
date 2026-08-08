@@ -17,7 +17,7 @@ make && make test
 
 ---
 
-## 실습 5 — 재귀 하강 계산기 (LL)
+## 실습 6 — 재귀 하강 계산기 (LL)
 
 **디렉터리** `examples/05-recursive-descent`
 **관련 장** [13. LL 구문 분석](/docs/parsing/ll-parsing)
@@ -113,7 +113,7 @@ static Node *parse_term(void)
 
 ---
 
-## 실습 6 — 표 구동 LR 파서
+## 실습 7 — 표 구동 LR 파서
 
 **디렉터리** `examples/06-lr-table-driven`
 **관련 장** [16. LR 파서의 구현](/docs/parsing/lr-parser-implementation)
@@ -192,7 +192,7 @@ bison의 `syntax error, unexpected X, expecting Y or Z` 가 이것이다.
 
 ---
 
-## 실습 7 — flex + bison 계산기
+## 실습 8 — flex + bison 계산기
 
 **디렉터리** `examples/07-yacc-calc`
 **관련 장** [18. YACC 개요](/docs/yacc/yacc-overview),

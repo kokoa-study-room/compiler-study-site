@@ -208,3 +208,173 @@
   font-family: var(--ifm-font-family-monospace);
   font-size: 0.78rem;
 }
+
+/* ── 연산자 우선순위 파서 (14장) ─────────────────────────── */
+
+.precLayout {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.75rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .precLayout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.precTable {
+  border-collapse: collapse;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.82rem;
+  margin: 0;
+}
+
+.precTable th,
+.precTable td {
+  border: 1px solid var(--cs-border);
+  padding: 0.2rem 0.5rem;
+  text-align: center;
+  background: var(--cs-surface);
+  min-width: 1.9rem;
+}
+
+.precTable thead th,
+.precTable tbody th {
+  background: var(--cs-surface-alt);
+  font-weight: 700;
+}
+
+/* 지금 보고 있는 행·열 머리 */
+.precColHit {
+  background: var(--cs-accent-soft) !important;
+  color: var(--ifm-color-primary);
+}
+
+/* 지금 보고 있는 칸 */
+.precHit {
+  background: var(--cs-active-soft) !important;
+  font-weight: 700;
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: -2px;
+}
+
+/* 관계가 정의되지 않은 칸 = 구문 오류 */
+.precEmpty {
+  background: var(--cs-surface-alt) !important;
+}
+
+.relCell {
+  color: var(--ifm-color-primary);
+  font-weight: 600;
+}
+
+/* ── 속성 평가 (17장) ────────────────────────────────────── */
+
+.attrLayout {
+  display: grid;
+  grid-template-columns: minmax(14rem, auto) 1fr;
+  gap: 0.75rem;
+  align-items: start;
+  margin-top: 0.75rem;
+}
+
+@media (max-width: 996px) {
+  .attrLayout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.attrTreeWrap {
+  border: 1px solid var(--cs-border);
+  border-radius: 8px;
+  background: var(--cs-surface);
+  padding: 0.6rem 0.7rem;
+  overflow-x: auto;
+}
+
+.attrCaption {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--cs-text-muted);
+  margin-bottom: 0.4rem;
+}
+
+.attrTree,
+.attrTree ul {
+  list-style: none;
+  margin: 0;
+  padding-left: 0;
+}
+
+.attrTree ul {
+  padding-left: 0.9rem;
+  border-left: 1px dashed var(--cs-border);
+  margin-left: 0.35rem;
+}
+
+.attrTree li {
+  margin: 0.15rem 0;
+}
+
+.attrNode {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+  padding: 0.1rem 0.3rem;
+  border-radius: 5px;
+}
+
+.attrNodeCurrent {
+  background: var(--cs-accent-soft);
+}
+
+.attrSymbol {
+  font-family: var(--ifm-font-family-monospace);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.attrLexeme {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.78rem;
+  color: var(--cs-text-muted);
+}
+
+.attrChip {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.72rem;
+  padding: 0.05rem 0.35rem;
+  border-radius: 999px;
+  border: 1px solid var(--cs-border);
+  color: var(--cs-text-muted);
+  background: var(--cs-surface-alt);
+  white-space: nowrap;
+}
+
+/* 값이 아직 안 채워졌으면 흐리게, 채워지면 종류별 색 */
+.attrChipOn.attrChip_syn {
+  border-color: var(--cs-accept);
+  background: var(--cs-accept-soft);
+  color: var(--ifm-font-color-base);
+}
+
+.attrChipOn.attrChip_inh {
+  border-color: var(--ifm-color-primary);
+  background: var(--cs-accent-soft);
+  color: var(--ifm-font-color-base);
+}
+
+.attrChipOn.attrChip_act {
+  border-color: var(--cs-reject);
+  background: var(--cs-reject-soft);
+  color: var(--ifm-font-color-base);
+}
+
+.attrChipCurrent {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 1px;
+  font-weight: 700;
+}

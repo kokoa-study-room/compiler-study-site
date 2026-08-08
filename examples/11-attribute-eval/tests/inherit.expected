@@ -1,0 +1,31 @@
+입력: int a
+  후위 순회 한 번으로: 불가능
+    막히는 곳: L.in 는 자기 후손 밖의 값을 필요로 한다
+   # | 속성           | 종류 | 의미 규칙                  | 값           | 후위
+   1 | T.type         | 합성 | T.type := integer          | integer      | 1
+   2 | L.in           | 상속 | L.in := T.type             | integer      | 3
+   3 | L.addtype      | 액션 | addtype(id.entry, L.in)    | a : integer  | 3
+----
+입력: int a, b, c
+  후위 순회 한 번으로: 불가능
+    막히는 곳: L.in 는 자기 후손 밖의 값을 필요로 한다
+   # | 속성           | 종류 | 의미 규칙                  | 값           | 후위
+   1 | T.type         | 합성 | T.type := integer          | integer      | 1
+   2 | L.in           | 상속 | L.in := T.type             | integer      | 9
+   3 | L.in           | 상속 | L1.in := L.in              | integer      | 6
+   4 | L.in           | 상속 | L1.in := L.in              | integer      | 3
+   5 | L.addtype      | 액션 | addtype(id.entry, L.in)    | a : integer  | 3
+   6 | L.addtype      | 액션 | addtype(id.entry, L.in)    | b : integer  | 6
+   7 | L.addtype      | 액션 | addtype(id.entry, L.in)    | c : integer  | 9
+----
+입력: float x, y
+  후위 순회 한 번으로: 불가능
+    막히는 곳: L.in 는 자기 후손 밖의 값을 필요로 한다
+   # | 속성           | 종류 | 의미 규칙                  | 값           | 후위
+   1 | T.type         | 합성 | T.type := integer          | float        | 1
+   2 | L.in           | 상속 | L.in := T.type             | float        | 6
+   3 | L.in           | 상속 | L1.in := L.in              | float        | 3
+   4 | L.addtype      | 액션 | addtype(id.entry, L.in)    | x : float    | 3
+   5 | L.addtype      | 액션 | addtype(id.entry, L.in)    | y : float    | 6
+----
+모두 정상 처리

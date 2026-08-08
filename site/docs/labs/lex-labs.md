@@ -360,9 +360,70 @@ make && make test
 
 ---
 
+## 실습 5 — 재진입 스캐너
+
+**디렉터리** `examples/09-lex-reentrant`
+**관련 장** [9.10 재진입 스캐너와 유니코드](/docs/lex/writing-lex-files#910-재진입-스캐너와-유니코드)
+
+앞의 네 실습은 모두 스캐너가 하나였다.
+`yytext`, `yyleng`, `yylineno` 가 전역 변수이므로 그럴 수밖에 없었다.
+
+이번에는 스캐너를 **셋** 만들어 동시에 굴린다.
+
+```bash
+cd examples/09-lex-reentrant
+make
+printf 'one two 3\nfour 56\n' | ./reentrant
+```
+
+```
+== 번갈아 읽기 ==
+A: WORD   [alpha]     B: NUM    [99]
+A: NUM    [12]        B: WORD   [gamma]
+A: WORD   [beta]      B: OTHER  [?]
+A: EOF    []          B: EOF    []
+
+A: words=2 nums=1 other=0
+B: words=1 nums=1 other=1
+
+== 표준 입력 ==
+C: words=3 nums=2 other=0
+C: lines=2
+```
+
+**A와 B에서 토큰을 하나씩 번갈아 꺼내고 있다.**
+전역 변수 방식이었다면 `tklex(a)` 가 채운 `yytext` 를
+바로 다음 `tklex(b)` 가 덮어써 버린다.
+
+### 바뀌는 것
+
+| | 기본 | `%option reentrant` |
+|---|---|---|
+| 스캐너 상태 | 전역 변수 | `yyscan_t` 핸들 |
+| 초기화 / 정리 | 없음 | `tklex_init(&sc)` / `tklex_destroy(sc)` |
+| 호출 | `yylex()` | `tklex(sc)` |
+| 입력 지정 | `yyin = fp` | `tkset_in(fp, sc)` / `tk_scan_string(s, sc)` |
+| 사용자 데이터 | 전역 변수 | `YY_EXTRA_TYPE` + `tkset_extra` / `tkget_extra` |
+
+`%option prefix="tk"` 는 생성되는 이름의 `yy` 를 `tk` 로 바꾼다.
+**한 프로그램에 서로 다른 스캐너를 둘 이상 링크할 때** 필요한 옵션으로,
+재진입(같은 스캐너의 여러 인스턴스)과는 별개의 문제다.
+
+### 해 볼 것
+
+1. `tok.l` 에서 `%option reentrant` 를 지우고 빌드해 보자.
+   어떤 오류가 몇 개 나는가? 그 오류가 곧 "전역이 아니게 된 것들"의 목록이다.
+2. `struct stats` 에 `longest` 를 추가해 각 스캐너가 만난
+   가장 긴 단어의 길이를 기록하라. **전역 변수를 하나도 쓰지 않고** 할 수 있어야 한다.
+3. bison 파서와 짝을 맞추려면 파서도 재진입이어야 한다.
+   `07-yacc-calc` 를 `%define api.pure full` 로 바꿔 보자
+   (bison 2.4 이상 필요 — macOS 기본 bison 2.3에서는 `%pure-parser`).
+
+---
+
 ## 정리 — 어휘 분석기의 설계 원칙
 
-네 실습을 관통하는 하나의 원칙이 있다.
+다섯 실습을 관통하는 하나의 원칙이 있다.
 
 > **이론이 허용하는 만큼만 도구에 맡기고, 나머지는 명시적으로 코드를 쓴다.**
 

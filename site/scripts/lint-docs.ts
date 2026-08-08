@@ -10,6 +10,7 @@
  *  6. 헤딩 안의 수식             → 목차에 원본 LaTeX 이 노출된다
  *  7. 확인 문제 수 ≠ 해설 수      → 풀이가 빠진 장
  *  8. 용어 사전의 유령 항목        → 본문에 없는 말을 정의하고 있다
+ *  9. 코드 스팬 안의 LaTeX 매크로  → \lvert 가 글자 그대로 찍힌다
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -98,11 +99,37 @@ for (const path of walk(DOCS)) {
     // 2. 수식 안의 \| — KaTeX 가 ‖ 로 그린다
     if (/\$[^$]*\\\|/.test(bare)) add('수식 안의 \\| (\\mid 또는 \\lvert \\rvert 로 바꿀 것)');
 
+    // 2-b. 표의 셀 안 수식에 맨 `|` — 열 구분자로 먹혀 수식과 표가 함께 깨진다.
+    //      셀로 쪼갠 뒤 `$` 개수가 홀수인 셀이 있으면 수식이 잘린 것이다.
+    //      (`$O(n^2 \cdot |\Sigma|)$` 가 세 셀로 찢어져 본문에 \cdot 이 노출됐다.)
+    if (t.startsWith('|') && t.endsWith('|')) {
+      const cells = line
+        .replace(/`[^`\n]*`/g, '')        // 코드 스팬 안의 $ 는 수식이 아니다
+        .replace(/\\\$/g, '')             // 이스케이프된 $
+        .replace(/\\\|/g, '')             // 이스케이프된 |
+        .trim()
+        .slice(1, -1)
+        .split('|');
+      const split = cells.find((c) => (c.match(/\$/g) ?? []).length % 2 === 1);
+      if (split !== undefined) {
+        add('표 안에서 수식이 | 로 잘렸다 (\\lvert \\rvert 로 바꿀 것)');
+      }
+    }
+
     // 3. 공백 제목 admonition — 조용히 버려진다
     if (/^:::(note|tip|info|caution|danger|warning)\s+\S/.test(t)) add('admonition 제목은 대괄호로');
 
     // 4. 이중 백틱 코드 스팬 — 백틱이 본문에 찍힌다
     if (/`` `[^`]+` ``/.test(line)) add('이중 백틱 코드 스팬');
+
+    // 9. 코드 스팬 안의 LaTeX 매크로 — 수식이 아니므로 글자 그대로 찍힌다
+    //    수식 안의 \| 를 일괄 치환하다 백틱 안까지 건드린 적이 있다.
+    //    표 안의 코드 스팬에서 파이프가 필요하면 `\|` 를 쓴다.
+    for (const span of line.match(/`[^`\n]*`/g) ?? []) {
+      if (/\\(lvert|rvert|mid|varepsilon|to|alpha|beta|Sigma)\b/.test(span)) {
+        add(`코드 스팬 안의 LaTeX 매크로: ${span.slice(0, 40)}`);
+      }
+    }
 
     // 5. 링크 표시 장 번호
     for (const m of line.matchAll(LINK)) {

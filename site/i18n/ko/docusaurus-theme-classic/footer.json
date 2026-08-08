@@ -1,0 +1,74 @@
+{
+  "link.title.교안": {
+    "message": "교안",
+    "description": "The title of the footer links column with title=교안 in the footer"
+  },
+  "link.title.실습": {
+    "message": "실습",
+    "description": "The title of the footer links column with title=실습 in the footer"
+  },
+  "link.title.더 보기": {
+    "message": "더 보기",
+    "description": "The title of the footer links column with title=더 보기 in the footer"
+  },
+  "link.item.label.들어가며": {
+    "message": "들어가며",
+    "description": "The label of footer link with label=들어가며 linking to /docs/intro"
+  },
+  "link.item.label.컴파일러 개요": {
+    "message": "컴파일러 개요",
+    "description": "The label of footer link with label=컴파일러 개요 linking to /docs/foundations/compiler-overview"
+  },
+  "link.item.label.유한 오토마타": {
+    "message": "유한 오토마타",
+    "description": "The label of footer link with label=유한 오토마타 linking to /docs/regular/finite-automata"
+  },
+  "link.item.label.LR 구문 분석": {
+    "message": "LR 구문 분석",
+    "description": "The label of footer link with label=LR 구문 분석 linking to /docs/parsing/lr-parsing"
+  },
+  "link.item.label.YACC 개요": {
+    "message": "YACC 개요",
+    "description": "The label of footer link with label=YACC 개요 linking to /docs/yacc/yacc-overview"
+  },
+  "link.item.label.실습 환경 구성": {
+    "message": "실습 환경 구성",
+    "description": "The label of footer link with label=실습 환경 구성 linking to /docs/labs/setup"
+  },
+  "link.item.label.LEX 실습": {
+    "message": "LEX 실습",
+    "description": "The label of footer link with label=LEX 실습 linking to /docs/labs/lex-labs"
+  },
+  "link.item.label.YACC 실습": {
+    "message": "YACC 실습",
+    "description": "The label of footer link with label=YACC 실습 linking to /docs/labs/yacc-labs"
+  },
+  "link.item.label.통합 프로젝트": {
+    "message": "통합 프로젝트",
+    "description": "The label of footer link with label=통합 프로젝트 linking to /docs/labs/mini-compiler"
+  },
+  "link.item.label.최신 경향과 연구": {
+    "message": "최신 경향과 연구",
+    "description": "The label of footer link with label=최신 경향과 연구 linking to /docs/modern/trends"
+  },
+  "link.item.label.도구 지형도": {
+    "message": "도구 지형도",
+    "description": "The label of footer link with label=도구 지형도 linking to /docs/modern/toolchain-map"
+  },
+  "link.item.label.용어 사전": {
+    "message": "용어 사전",
+    "description": "The label of footer link with label=용어 사전 linking to /docs/reference/glossary"
+  },
+  "link.item.label.한 장 요약": {
+    "message": "한 장 요약",
+    "description": "The label of footer link with label=한 장 요약 linking to /docs/reference/cheatsheet"
+  },
+  "link.item.label.개발 로그": {
+    "message": "개발 로그",
+    "description": "The label of footer link with label=개발 로그 linking to /log"
+  },
+  "copyright": {
+    "message": "컴파일러 학습 노트 · Docusaurus로 제작 · 2026",
+    "description": "The footer copyright"
+  }
+}

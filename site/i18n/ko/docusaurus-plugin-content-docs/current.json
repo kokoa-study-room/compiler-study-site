@@ -1,0 +1,102 @@
+{
+  "version.label": {
+    "message": "Next",
+    "description": "The label for version current"
+  },
+  "sidebar.courseSidebar.category.1부 · 기초": {
+    "message": "1부 · 기초",
+    "description": "The label for category '1부 · 기초' in sidebar 'courseSidebar'"
+  },
+  "sidebar.courseSidebar.category.1부 · 기초.link.generated-index.title": {
+    "message": "1부 · 기초",
+    "description": "The generated-index page title for category '1부 · 기초' in sidebar 'courseSidebar'"
+  },
+  "sidebar.courseSidebar.category.1부 · 기초.link.generated-index.description": {
+    "message": "컴파일러가 무엇을 하는 소프트웨어인지, 그리고 그 전 과정을 떠받치는 \"언어와 문법\"이라는 형식 도구를 먼저 세운다.",
+    "description": "The generated-index page description for category '1부 · 기초' in sidebar 'courseSidebar'"
+  },
+  "sidebar.courseSidebar.category.2부 · 정규언어와 유한 오토마타": {
+    "message": "2부 · 정규언어와 유한 오토마타",
+    "description": "The label for category '2부 · 정규언어와 유한 오토마타' in sidebar 'courseSidebar'"
+  },
+  "sidebar.courseSidebar.category.2부 · 정규언어와 유한 오토마타.link.generated-index.title": {
+    "message": "2부 · 정규언어와 유한 오토마타",
+    "description": "The generated-index page title for category '2부 · 정규언어와 유한 오토마타' in sidebar 'courseSidebar'"
+  },
+  "sidebar.courseSidebar.category.2부 · 정규언어와 유한 오토마타.link.generated-index.description": {
+    "message": "어휘 분석기의 이론적 토대. 정규언어를 정의하고, 정규 표현과 유한 오토마타가 같은 표현력을 가진다는 사실과 그 상호 변환을 다룬다.",
+    "description": "The generated-index page description for category '2부 · 정규언어와 유한 오토마타' in sidebar 'courseSidebar'"
+  },
+  "sidebar.courseSidebar.category.3부 · LEX": {
+    "message": "3부 · LEX",
+    "description": "The label for category '3부 · LEX' in sidebar 'courseSidebar'"
+  },
+  "sidebar.courseSidebar.category.3부 · LEX.link.generated-index.title": {
+    "message": "3부 · LEX",
+    "description": "The generated-index page title for category '3부 · LEX' in sidebar 'courseSidebar'"
+  },
+  "sidebar.courseSidebar.category.3부 · LEX.link.generated-index.description": {
+    "message": "2부의 이론을 자동화한 도구. lex/flex가 정규 표현으로부터 어떻게 DFA를 만들고 토큰을 잘라내는지, 그리고 입력 파일을 어떻게 쓰는지 다룬다.",
+    "description": "The generated-index page description for category '3부 · LEX' in sidebar 'courseSidebar'"
+  },
+  "sidebar.courseSidebar.category.4부 · 문맥 자유 문법과 구문 분석": {
+    "message": "4부 · 문맥 자유 문법과 구문 분석",
+    "description": "The label for category '4부 · 문맥 자유 문법과 구문 분석' in sidebar 'courseSidebar'"
+  },
+  "sidebar.courseSidebar.category.4부 · 문맥 자유 문법과 구문 분석.link.generated-index.title": {
+    "message": "4부 · 문맥 자유 문법과 구문 분석",
+    "description": "The generated-index page title for category '4부 · 문맥 자유 문법과 구문 분석' in sidebar 'courseSidebar'"
+  },
+  "sidebar.courseSidebar.category.4부 · 문맥 자유 문법과 구문 분석.link.generated-index.description": {
+    "message": "정규언어로는 표현할 수 없는 중첩 구조를 다루기 위한 문맥 자유 문법과, 그로부터 파스 트리를 만들어 내는 LL/LR 구문 분석 알고리즘.",
+    "description": "The generated-index page description for category '4부 · 문맥 자유 문법과 구문 분석' in sidebar 'courseSidebar'"
+  },
+  "sidebar.courseSidebar.category.5부 · YACC": {
+    "message": "5부 · YACC",
+    "description": "The label for category '5부 · YACC' in sidebar 'courseSidebar'"
+  },
+  "sidebar.courseSidebar.category.5부 · YACC.link.generated-index.title": {
+    "message": "5부 · YACC",
+    "description": "The generated-index page title for category '5부 · YACC' in sidebar 'courseSidebar'"
+  },
+  "sidebar.courseSidebar.category.5부 · YACC.link.generated-index.description": {
+    "message": "4부의 LALR(1) 이론을 자동화한 도구. yacc/bison으로 파서를 생성하고, 충돌 보고서를 읽고, lex와 결합해 하나의 컴파일러 프론트엔드를 만든다.",
+    "description": "The generated-index page description for category '5부 · YACC' in sidebar 'courseSidebar'"
+  },
+  "sidebar.courseSidebar.category.6부 · 심화와 최신 동향": {
+    "message": "6부 · 심화와 최신 동향",
+    "description": "The label for category '6부 · 심화와 최신 동향' in sidebar 'courseSidebar'"
+  },
+  "sidebar.courseSidebar.category.6부 · 심화와 최신 동향.link.generated-index.title": {
+    "message": "6부 · 심화와 최신 동향",
+    "description": "The generated-index page title for category '6부 · 심화와 최신 동향' in sidebar 'courseSidebar'"
+  },
+  "sidebar.courseSidebar.category.6부 · 심화와 최신 동향.link.generated-index.description": {
+    "message": "교과서의 lex/yacc 바깥에서 지금 실제로 쓰이는 기술 — 점진적 파싱, PEG, MLIR, 검증된 컴파일러, LLM 기반 최적화.",
+    "description": "The generated-index page description for category '6부 · 심화와 최신 동향' in sidebar 'courseSidebar'"
+  },
+  "sidebar.courseSidebar.category.부록": {
+    "message": "부록",
+    "description": "The label for category '부록' in sidebar 'courseSidebar'"
+  },
+  "sidebar.courseSidebar.category.부록.link.generated-index.title": {
+    "message": "부록",
+    "description": "The generated-index page title for category '부록' in sidebar 'courseSidebar'"
+  },
+  "sidebar.courseSidebar.category.부록.link.generated-index.description": {
+    "message": "용어 사전과 한 장짜리 요약 시트.",
+    "description": "The generated-index page description for category '부록' in sidebar 'courseSidebar'"
+  },
+  "sidebar.labSidebar.category.실습 과제": {
+    "message": "실습 과제",
+    "description": "The label for category '실습 과제' in sidebar 'labSidebar'"
+  },
+  "sidebar.labSidebar.category.실습 과제.link.generated-index.title": {
+    "message": "실습 과제",
+    "description": "The generated-index page title for category '실습 과제' in sidebar 'labSidebar'"
+  },
+  "sidebar.labSidebar.category.실습 과제.link.generated-index.description": {
+    "message": "flex와 bison을 직접 돌려 보는 과제 모음. 모든 예제는 저장소의 examples/ 아래에 실행 가능한 형태로 들어 있다.",
+    "description": "The generated-index page description for category '실습 과제' in sidebar 'labSidebar'"
+  }
+}

@@ -48,7 +48,29 @@ const config: Config = {
     format: 'detect',
   },
 
-  themes: ['@docusaurus/theme-mermaid'],
+  themes: [
+    '@docusaurus/theme-mermaid',
+    // 오프라인 전문 검색. 22장 · 9만 낱말이라 검색 없이는 찾아 들어가기 어렵다.
+    // navbar 의 {type: 'search'} 는 자리만 잡는 것이고, 실제 검색 UI는
+    // 이 테마가 넣어 준다 (없으면 아무것도 렌더되지 않고 경고도 없다).
+    [
+      require.resolve('@easyops-cn/docusaurus-search-local'),
+      {
+        hashed: true,
+        language: ['ko', 'en'],
+        indexDocs: true,
+        indexBlog: true,
+        indexPages: false,
+        docsRouteBasePath: '/docs',
+        blogRouteBasePath: '/log',
+        highlightSearchTermsOnTargetPage: true,
+        searchResultLimits: 10,
+        searchResultContextMaxLength: 60,
+        // 한국어는 어간 분석기가 없어 짧은 토큰도 살려 둔다
+        removeDefaultStopWordFilter: false,
+      },
+    ],
+  ],
 
   presets: [
     [

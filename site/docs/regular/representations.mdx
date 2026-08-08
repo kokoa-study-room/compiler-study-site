@@ -508,8 +508,8 @@ $p_3$ 과 $p_4$ 를 합친 것을 $p_{34}$ 라 하면:
 
 | 알고리즘 | 시간 |
 |---|---|
-| 소박한 분할 정제 | $O(n^2 \cdot |\Sigma|)$ |
-| **Hopcroft 알고리즘** | $O(n \log n \cdot |\Sigma|)$ |
+| 소박한 분할 정제 | $O(n^2 \cdot \lvert \Sigma \rvert)$ |
+| **Hopcroft 알고리즘** | $O(n \log n \cdot \lvert \Sigma \rvert)$ |
 | Brzozowski (역·결정화 2회) | 최악 지수, 실무에선 종종 빠름 |
 
 Hopcroft 알고리즘은 "항상 **작은 쪽** 그룹으로 쪼갠다"는
@@ -849,7 +849,7 @@ followpos 방식은 **처음부터 4상태**를 만든다.
 |---|---|---|
 | 정규 표현 → ε-NFA | Thompson 구성 | 상태 수가 식 크기에 **선형** |
 | ε-NFA → DFA | 부분집합 구성 | 최악 $2^n$ 상태 |
-| DFA → 최소 DFA | 분할 정제 / Hopcroft | $O(n \log n \cdot |\Sigma|)$ |
+| DFA → 최소 DFA | 분할 정제 / Hopcroft | $O(n \log n \cdot \lvert \Sigma \rvert)$ |
 | DFA → 정규 표현 | 상태 소거 | 결과 크기 최악 지수 |
 | 정규 문법 ↔ NFA | 규칙별 1:1 대응 | 선형 |
 | 정규 표현 → DFA (직행) | followpos | ε-NFA를 건너뛴다 |
@@ -902,7 +902,7 @@ $$a,\quad b,\quad |,\quad * \qquad \Rightarrow n = 4$$
 
 (괄호는 그룹을 표시할 뿐 연산자가 아니므로 세지 않는다.)
 
-$$2n = 8 \quad ✅ \text{ 상한과 정확히 일치}$$
+$$2n = 8$$ ✅ 상한과 정확히 일치
 
 **왜 딱 맞는가.** Thompson 구성은
 - 피연산자(기호) 하나마다 상태 2개

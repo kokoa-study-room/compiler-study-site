@@ -1,0 +1,26 @@
+{
+  "title": {
+    "message": "컴파일러 학습 노트",
+    "description": "The title in the navbar"
+  },
+  "logo.alt": {
+    "message": "컴파일러 학습 노트 로고",
+    "description": "The alt text of navbar logo"
+  },
+  "item.label.교안": {
+    "message": "교안",
+    "description": "Navbar item with label 교안"
+  },
+  "item.label.실습": {
+    "message": "실습",
+    "description": "Navbar item with label 실습"
+  },
+  "item.label.개발 로그": {
+    "message": "개발 로그",
+    "description": "Navbar item with label 개발 로그"
+  },
+  "item.label.GitHub": {
+    "message": "GitHub",
+    "description": "Navbar item with label GitHub"
+  }
+}

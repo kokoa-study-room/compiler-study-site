@@ -339,10 +339,10 @@ SDD가 **L-속성(L-attributed)** 이라는 것은,
 **핵심 제약: 오른쪽 형제를 볼 수 없다.**
 
 $$
-X_3.\text{in} := f(X_1.\text{val},\ X_2.\text{val}) \quad ✅
+X_3.\text{in} := f(X_1.\text{val},\ X_2.\text{val}) \quad \text{(허용)}
 $$
 $$
-X_1.\text{in} := f(X_4.\text{val}) \quad ❌ \text{ L-속성이 아니다}
+X_1.\text{in} := f(X_4.\text{val}) \quad \text{(L-속성이 아니다)}
 $$
 
 왼쪽에서 오른쪽으로 훑는 동안 $X_4$ 는 아직 처리되지 않았기 때문이다.

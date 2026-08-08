@@ -13,7 +13,7 @@
 
 | 디렉터리 | 내용 |
 |---|---|
-| `site/` | Docusaurus 3 (TypeScript) 문서 사이트 — 교안 22장 + 실습 4페이지 + 부록 |
+| `site/` | Docusaurus 3 (TypeScript) 문서 사이트 — 교안 22장 + 실습 4페이지 + 부록. 오프라인 검색 포함 |
 | `examples/` | 실행 가능한 예제 11개. 전부 `make test` 로 검증된다 |
 | `research/` | 최신 동향 조사의 1차 자료와 출처 |
 | `PROGRESS.md` | 작업 단위별 진행 기록과 설계 판단 |
@@ -91,12 +91,21 @@ make && make test
 ### 전체 검증
 
 ```bash
-cd site && bun run check     # lint + typecheck + bun test + build
+cd site && bun run check     # lint + typecheck + bun test + build + lint:build
 cd ../examples && make test
 ```
 
-`bun run lint` 는 **빌드는 통과하는데 결과가 틀리는** 문제를 잡는다.
-아래 "알아 둘 함정"의 항목들이 그대로 검사 규칙이다.
+**빌드는 통과하는데 결과가 틀리는** 문제를 두 단계로 잡는다.
+
+| 검사 | 보는 것 | 잡는 것 |
+|---|---|---|
+| `bun run lint` | 마크다운 원본 | 아래 "알아 둘 함정" 1~9 |
+| `bun test` | 코드 + 교안의 표 | 파싱 표가 교안·컴포넌트·예제 C 배열에서 모두 같은가 |
+| `bun run lint:build` | **빌드된 HTML** | 원본은 멀쩡한데 렌더링에서 깨진 것 |
+
+마지막 것이 필요한 이유가 있다. `.md`(CommonMark)에서 서식이 든
+admonition 제목이 **39곳에서 통째로 버려지고 있었는데**,
+원본만 봐서는 알 수 없고 빌드도 성공하고 경고도 없었다.
 
 ---
 
@@ -116,10 +125,9 @@ NFA→DFA 부분집합 구성도, LR(0) 항목 집합도 먼저 종이 위에서
 예제 프로그램의 출력 — 지어낸 것이 하나도 없다.
 
 **파싱 표는 기계로 검증한다.**
-교안에 싣는 SLR(1)·LL(1) 표가 실제로 올바른지를
-`site/src/components/parsing/simulate.test.ts` 가 확인한다
-(유효 입력 수락 / 무효 입력 거부 / 축약 순서 일치, 87개 테스트).
-연산자 우선 관계 표와 속성 평가 순서도 같은 방식으로 검증한다.
+같은 표가 네 군데에 있다 — 교안 마크다운, 시뮬레이터, 예제 C 배열, 그리고 문서의 설명.
+`doc-tables.test.ts` 가 **교안의 표를 직접 읽어** 나머지와 한 칸씩 대조한다.
+한 곳을 고치고 나머지를 잊으면 테스트가 깨진다 (97개 테스트).
 
 **인터랙티브하게 만든다.**
 부분집합 구성, DFA/NFA 시뮬레이션, FIRST/FOLLOW 고정점 계산,
@@ -143,10 +151,12 @@ LL·LR 파싱 스택, 우선 관계 표, 속성 평가 순서 —
 | **KaTeX** | $\Sigma^*$, $\delta(q,a)$ 같은 표기가 검색·복사 가능해야 한다 |
 | **`markdown.format: 'detect'`** | 교안 본문의 `{a, b}`, `<expr>` 표기가 MDX의 JSX로 해석되지 않도록 `.md`는 CommonMark로 처리 |
 | **`onBrokenLinks: 'throw'`** | 장 사이 상호 참조가 많아 링크 검사가 곧 회귀 테스트다 |
+| **`@easyops-cn/docusaurus-search-local`** | 22장 9만 낱말이라 검색이 없으면 찾아 들어갈 수 없다. 오프라인 색인이라 외부 서비스가 필요 없다 |
+| **`src/theme/Admonition`** | `.md` 에서 서식이 든 admonition 제목이 버려지는 문제를 고친 스위즐 |
 
 ---
 
-## 알아 둘 함정 — `bun run lint` 가 잡아 준다
+## 알아 둘 함정 열 가지 — 검사가 잡아 준다
 
 작업하면서 겪은, **빌드는 통과하는데 결과가 틀리는** 문제들이다.
 `site/scripts/lint-docs.ts` 가 전부 검사하므로 외울 필요는 없지만,
@@ -221,7 +231,25 @@ KaTeX 폰트에 없어서 `No character metrics` 경고와 함께 깨진다.
 절을 새로 쓰면 확인 문제도 같이 늘리고, 해설을 반드시 붙인다.
 lint가 장마다 개수를 대조한다.
 
-### 8. 용어 사전에 없는 말을 지어내지 말 것
+### 8. 코드 스팬 안에는 LaTeX 매크로를 쓰지 말 것
+
+```md
+| `(a\lvert b)*abb` |     ❌ 백틱 안이므로 \lvert 가 글자 그대로 찍힌다
+| `(a\|b)*abb` |          ✅ 표 안에서는 \| 로 escape
+```
+
+수식 안의 `\|` 를 일괄 치환하다 백틱 안까지 건드린 적이 있다.
+
+### 9. 표 안에서 수식이 `|` 로 잘리지 않게
+
+```md
+| 소박한 분할 정제 | $O(n^2 \cdot |\Sigma|)$ |        ❌ 셋으로 찢어진다
+| 소박한 분할 정제 | $O(n^2 \cdot \lvert \Sigma \rvert)$ |  ✅
+```
+
+셀로 쪼갠 뒤 `$` 개수가 홀수인 셀이 있으면 수식이 잘린 것이다. lint가 그렇게 센다.
+
+### 10. 용어 사전에 없는 말을 지어내지 말 것
 
 ```md
 | 완전 DFA | total DFA | … | [5](/docs/regular/finite-automata) |   ❌ 본문은 "전함수"라고 쓴다

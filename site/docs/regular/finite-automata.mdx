@@ -118,6 +118,35 @@ $M = (Q, \Sigma, \delta, q_0, F)$ 이다.
 어떤 상태에서 어떤 입력 기호를 보든, 갈 곳이 **정확히 하나** 정해진다.
 선택의 여지가 없으므로 되돌아갈(backtrack) 필요도 없다.
 
+:::note[수식 읽는 법 — 화살표는 "무엇을 넣으면 무엇이 나온다"]
+$$
+\delta : Q \times \Sigma \to Q
+$$
+
+이 한 줄이 DFA의 전부다. 왼쪽이 **넣는 것**, 오른쪽이 **나오는 것**이다.
+
+| 부분 | 읽는 법 |
+|---|---|
+| $Q \times \Sigma$ | (상태 하나, 기호 하나) **짝**을 넣는다 |
+| $\to$ | "…를 넣으면 …가 나온다" |
+| $Q$ | 상태 하나가 나온다 |
+
+그래서 $\delta(q_1, \texttt{a}) = q_2$ 는
+**"상태 $q_1$ 에서 `a` 를 읽으면 $q_2$ 로 간다"** 로 읽는다.
+상태 전이도의 화살표 하나가 곧 이 식 하나다.
+
+**"함수"라는 말에 두 가지 약속이 들어 있다.**
+
+| 함수의 성질 | DFA 에서의 뜻 |
+|---|---|
+| 값이 **항상** 있다 | 어떤 (상태, 기호)에도 갈 곳이 있다 → 막히지 않는다 |
+| 값이 **하나뿐**이다 | 갈 곳이 유일하다 → 고민할 것이 없다 |
+
+이 둘이 곧 **결정적**이다.
+5.2절의 NFA는 화살표 오른쪽이 $Q$ 가 아니라 $2^Q$ 로 바뀌는데,
+그 한 글자 차이가 "갈 곳이 여럿일 수 있다"를 뜻한다.
+:::
+
 ### 확장 전이 함수
 
 $\delta$ 는 기호 하나에 대한 전이다.
@@ -131,6 +160,43 @@ $$
 \hat{\delta}(q, wa) = \delta(\hat{\delta}(q, w),\ a)
 $$
 
+:::note[수식 읽는 법 — 재귀 정의를 뒤에서부터 읽는다]
+$\hat{\delta}$ 는 $\delta$ 위의 모자다. 차이는 **두 번째 인자**뿐이다.
+
+| | 넣는 것 | 뜻 |
+|---|---|---|
+| $\delta(q, a)$ | 기호 **하나** | 한 걸음 |
+| $\hat{\delta}(q, w)$ | 스트링 **전체** | 다 읽고 난 뒤의 상태 |
+
+정의가 두 줄인데, **첫 줄이 바닥이고 둘째 줄이 한 겹 벗기는 것**이다.
+
+**첫 줄 — 바닥.** $\hat{\delta}(q, \varepsilon) = q$
+
+아무것도 안 읽으면 제자리다. 재귀가 여기서 멈춘다.
+
+**둘째 줄 — 한 겹 벗기기.** $\hat{\delta}(q, wa) = \delta(\hat{\delta}(q, w),\ a)$
+
+$wa$ 는 "스트링 $w$ 뒤에 기호 $a$ 하나"라는 뜻이다.
+**맨 뒤 한 글자를 떼어 낸다.**
+그러면 "앞부분 $w$ 를 다 읽고 나서, 마지막 $a$ 한 걸음"이 된다.
+
+**`ab` 를 넣어 직접 펼쳐 보자.**
+
+$$
+\begin{aligned}
+\hat{\delta}(q_0,\ \texttt{ab})
+  &= \delta(\hat{\delta}(q_0,\ \texttt{a}),\ \texttt{b}) && \text{맨 뒤 } \texttt{b} \text{ 를 뗀다} \\
+  &= \delta(\delta(\hat{\delta}(q_0,\ \varepsilon),\ \texttt{a}),\ \texttt{b}) && \text{맨 뒤 } \texttt{a} \text{ 를 뗀다} \\
+  &= \delta(\delta(q_0,\ \texttt{a}),\ \texttt{b}) && \text{바닥에 닿았다}
+\end{aligned}
+$$
+
+마지막 줄을 보면 **왼쪽부터 차례로 읽는 것**과 정확히 같다.
+정의는 뒤에서부터 벗기지만, 결과는 앞에서부터 한 글자씩 나아간 것이다.
+
+스트링이 유한하므로 벗기다 보면 반드시 $\varepsilon$ 에 닿는다 — 그래서 잘 정의된다.
+:::
+
 그러면 $M$ 이 인식하는 언어는
 
 $$
@@ -138,6 +204,26 @@ L(M) = \{\, w \in \Sigma^* \mid \hat{\delta}(q_0, w) \in F \,\}
 $$
 
 즉 **시작 상태에서 출발해 스트링을 다 읽었을 때 종결 상태에 있으면 수락**이다.
+
+:::note[수식 읽는 법 — 세로줄은 "단, 이런 것만"]
+$\{\ \dots \mid \dots\ \}$ 는 **조건제시법**이다. 세로줄 앞뒤가 하는 일이 다르다.
+
+$$
+L(M) = \{\ \underbrace{w \in \Sigma^*}_{\text{어디서 고르나}}\ \mid\ \underbrace{\hat{\delta}(q_0, w) \in F}_{\text{어떤 것만 담나}}\ \}
+$$
+
+소리 내어 읽으면 이렇다.
+
+> $\Sigma^*$ 의 스트링 $w$ **중에서**,
+> $q_0$ 에서 출발해 $w$ 를 다 읽었을 때 도착한 상태가 $F$ 에 속하는 것 **만** 모은 집합.
+
+세로줄은 "such that", 우리말로 **"단,"** 또는 **"…인"** 이다.
+[시작하기 전에](/docs/prerequisites#집합)의 집합 표기와 같은 것이다.
+
+**이 한 줄이 "오토마타가 언어를 정한다"는 말의 정확한 뜻이다.**
+기계는 스트링 하나하나에 예/아니오만 답하는데,
+"예"라고 답한 것을 전부 모으면 하나의 언어가 된다.
+:::
 
 ### 예제 — `(a|b)*abb`
 
@@ -268,6 +354,39 @@ $$
 L(M) = \{\, w \mid \hat{\delta}(q_0, w) \cap F \neq \emptyset \,\}
 $$
 
+:::note[수식 읽는 법 — DFA와 딱 한 글자 다르다]
+DFA의 수락 조건과 나란히 놓아 보자.
+
+| | 수락 조건 | 읽는 법 |
+|---|---|---|
+| DFA | $\hat{\delta}(q_0, w) \in F$ | 도착한 **상태가** 종결 상태다 |
+| NFA | $\hat{\delta}(q_0, w) \cap F \neq \emptyset$ | 도착한 **상태들 중 하나라도** 종결 상태다 |
+
+$\in$ 이 $\cap \neq \emptyset$ 으로 바뀌었다. 이유는 하나다 —
+**NFA에서 $\hat{\delta}$ 가 돌려주는 것은 상태 하나가 아니라 상태의 집합**이기 때문이다.
+
+$$
+\hat{\delta}(q_0, w) \cap F \neq \emptyset
+\quad\Longleftrightarrow\quad
+\text{도착 집합과 } F \text{ 에 겹치는 원소가 있다}
+$$
+
+**"하나라도 있으면 수락"** 이 비결정성의 정확한 뜻이다.
+갈 수 있는 길을 전부 따라가 보고, **그중 하나라도** 성공하면 된다.
+
+`(a|b)*abb` 를 예로 보면, `aabb` 를 읽고 난 뒤 활성 상태가
+$\{n_0, n_3\}$ 처럼 여러 개인데 그중 $n_3$ 이 종결이므로 수락이다.
+나머지 갈래가 실패했다는 사실은 상관없다.
+
+:::caution[NFA는 "운이 좋은 기계"가 아니다]
+"올바른 길을 알아서 고른다"고 설명하는 책이 있는데, 오해를 부른다.
+NFA는 고르지 않는다. **모든 길을 동시에 갖고 있을 뿐**이다.
+
+[5.4절의 시뮬레이션](#nfa를-그대로-시뮬레이션하기)에서 보듯,
+실제로 돌릴 때는 활성 상태의 **집합**을 통째로 들고 다닌다.
+그 집합을 하나의 상태로 삼자는 것이 [부분집합 구성](/docs/regular/representations#63-nfa--dfa-부분집합-구성)이다.
+:::
+
 ### 왜 비결정성을 허용하는가
 
 `(a|b)*abb` 의 NFA를 보자. DFA보다 훨씬 **정규 표현을 닮았다**.
@@ -341,6 +460,39 @@ $$
 
 이렇게 확장한 것을 **ε-NFA** 또는 **NFA-ε** 라 한다.
 
+:::note[수식 읽는 법 — 바뀐 곳은 왼쪽 괄호 안뿐이다]
+세 오토마타의 전이 함수를 세로로 놓아 보자. **한 줄씩만 다르다.**
+
+| | 전이 함수 | 무엇이 달라졌나 |
+|---|---|---|
+| DFA | $\delta : Q \times \Sigma \to Q$ | — |
+| NFA | $\delta : Q \times \Sigma \to 2^{Q}$ | 오른쪽이 **집합**으로 |
+| ε-NFA | $\delta : Q \times (\Sigma \cup \{\varepsilon\}) \to 2^{Q}$ | 왼쪽에 $\varepsilon$ 이 **추가** |
+
+$\Sigma \cup \{\varepsilon\}$ 은 "알파벳 기호들 **에다가** 공 스트링 하나 더"다.
+
+$\Sigma = \{a, b\}$ 라면
+
+$$
+\Sigma \cup \{\varepsilon\} = \{a,\ b,\ \varepsilon\}
+$$
+
+넣을 수 있는 것이 셋이 되었다는 뜻이고, 셋째가 **"아무것도 안 읽음"** 이다.
+
+$$
+\delta(q_1,\ \varepsilon) = \{q_2\}
+\quad\Longrightarrow\quad
+\text{입력을 소비하지 않고 } q_1 \text{ 에서 } q_2 \text{ 로 갈 수 있다}
+$$
+
+:::caution[$\varepsilon$ 은 알파벳의 원소가 아니다]
+$\varepsilon \notin \Sigma$ 다. 그래서 **일부러 합집합으로 끼워 넣은** 것이다.
+
+$\Sigma$ 에 $\varepsilon$ 을 넣어 버리면 안 된다.
+$\Sigma^*$ 의 정의부터 무너지고, "길이 $n$ 인 스트링"이 무슨 말인지 알 수 없게 된다.
+$\varepsilon$ 은 **전이의 라벨로만** 잠깐 빌려 쓰는 것이다.
+:::
+
 ### 예제 — `aa*` 또는 `bb*`
 
 <AutomatonSimulator
@@ -390,6 +542,35 @@ $$
 T_{i+1} = \varepsilon\text{-closure}\big(\text{move}(T_i,\ a)\big)
 $$
 
+:::note[수식 읽는 법 — 안쪽부터 바깥쪽으로]
+함수가 겹쳐 있을 때는 **괄호 안쪽부터** 읽는다.
+
+$$
+T_{i+1} = \underbrace{\varepsilon\text{-closure}\big(\ \underbrace{\text{move}(T_i,\ a)}_{②\ \text{기호 } a \text{ 로 한 걸음}}\ \big)}_{③\ \text{공짜로 갈 수 있는 곳까지 마저}}
+$$
+
+① 지금 활성 상태 집합이 $T_i$ 다.
+② `a` 를 읽고 갈 수 있는 상태를 전부 모은다 → $\text{move}(T_i, a)$
+③ 거기서 **입력을 더 읽지 않고** ε 로만 갈 수 있는 곳까지 모두 포함시킨다.
+
+**왜 ③이 필요한가.** ε-전이는 "입력을 안 읽고 옮겨 가기"다.
+$a$ 를 읽어 어떤 상태에 도착했는데 거기서 ε 로 다른 데로 갈 수 있다면,
+그곳도 **지금 이 순간** 활성이다. 다음 기호를 읽기 전에 다 훑어 둬야 한다.
+
+$\varepsilon\text{-closure}$ 자체도 재귀적으로 정의된다.
+
+> $\varepsilon\text{-closure}(T)$ 는
+> ① $T$ 의 모든 상태를 포함하고,
+> ② 그 안의 상태에서 ε 로 갈 수 있는 상태도 포함하며,
+> ③ 그것을 **더 늘어나지 않을 때까지** 반복한 집합이다.
+
+③이 [12장 FIRST/FOLLOW](/docs/parsing/syntax-analysis#123-first-집합)나
+[15장 CLOSURE](/docs/parsing/lr-parsing#153-정준-lr0-항목-집합)와 똑같은
+**고정점 계산**이다. 이 교안에서 같은 모양이 세 번 나온다.
+
+상태가 유한하고 집합은 커지기만 하므로 반드시 멈춘다.
+:::
+
 이 한 줄이 [부분집합 구성](/docs/regular/representations)의 핵심 공식이다.
 기억해 두자.
 
@@ -409,6 +590,38 @@ $$
 $\varepsilon\text{-closure}(q) \cap F \neq \emptyset$ 인 $q$ 를 종결 상태에 추가한다.
 
 즉 **ε-전이를 미리 다 따라가서 전이 함수에 흡수**시키는 것이다.
+
+:::note[수식 읽는 법 — ε-closure 가 앞뒤로 두 번 나온다]
+괄호가 세 겹이라 복잡해 보이는데, **안에서 밖으로 세 걸음**일 뿐이다.
+
+$$
+\delta'(q, a) = \varepsilon\text{-closure}\Big(\ \delta\big(\ \underbrace{\varepsilon\text{-closure}(q)}_{①\ \text{읽기 전}},\ a\ \big)\ \Big)_{\phantom{x}}
+$$
+
+| 걸음 | 하는 일 | 왜 |
+|---|---|---|
+| ① 앞 closure | $q$ 에서 공짜로 갈 수 있는 곳을 먼저 다 모은다 | `a` 를 읽기 **전에** 이미 옮겨 갔을 수 있다 |
+| ② $\delta(\cdot, a)$ | 그 상태들에서 `a` 를 읽고 한 걸음 | 진짜로 입력을 소비하는 유일한 단계 |
+| ③ 뒤 closure | 도착한 뒤 또 공짜로 갈 수 있는 곳을 모은다 | `a` 를 읽은 **직후**에도 옮겨 갈 수 있다 |
+
+**closure 가 앞뒤로 두 번인 이유가 여기 있다.**
+ε-전이는 기호 읽기의 앞에도 뒤에도 끼어들 수 있기 때문이다.
+
+**종결 상태를 늘리는 조건**도 같은 발상이다.
+
+$$
+\varepsilon\text{-closure}(q) \cap F \neq \emptyset
+\quad\Longrightarrow\quad
+q \text{ 도 종결 상태로 삼는다}
+$$
+
+> "$q$ 에서 **입력을 더 읽지 않고** 종결 상태에 닿을 수 있다면,
+> $q$ 에서 멈춰도 수락한 것과 같다."
+
+이 두 줄이 곧 [6장 Thompson 구성](/docs/regular/representations#62-정규-표현--nfa-thompson-구성)이
+만들어 낸 ε 를 [부분집합 구성](/docs/regular/representations#63-nfa--dfa-부분집합-구성)이
+흡수하는 방식이다. **같은 식이 6장에서 다시 나온다.**
+:::
 
 따라서 표현력의 위계는 이렇다.
 
@@ -871,6 +1084,65 @@ JSON 파서, URL 파서, 프로토콜 헤더 파서처럼 작고 뜨거운 스�
 **둘 중 무엇을 쓰든 읽기 쉬운 쪽**이 대개 옳다.
 `examples/03-dfa-by-hand` 에서 두 구현을 나란히 놓고 비교해 보자.
 :::
+
+</details>
+
+7. DFA $M$ 의 전이가 $\delta(q_0, a) = q_1$, $\delta(q_1, b) = q_2$ 이고
+   $F = \{q_2\}$ 라 하자. $\hat{\delta}(q_0, \texttt{ab})$ 를 **정의대로 펼쳐**
+   계산하고, `ab` 가 $L(M)$ 에 속하는지 판정하라.
+
+<details>
+<summary>풀이</summary>
+
+**정의를 그대로 적용한다.** 둘째 줄은 맨 뒤 한 글자를 뗀다.
+
+$$
+\hat{\delta}(q, wa) = \delta(\hat{\delta}(q, w),\ a)
+$$
+
+**1단계 — `ab` 에서 뒤의 `b` 를 뗀다.** ($w = \texttt{a}$, $a = \texttt{b}$)
+
+$$
+\hat{\delta}(q_0,\ \texttt{ab}) = \delta\big(\hat{\delta}(q_0,\ \texttt{a}),\ \texttt{b}\big)
+$$
+
+**2단계 — `a` 에서 뒤의 `a` 를 뗀다.** ($w = \varepsilon$, $a = \texttt{a}$)
+
+$$
+\hat{\delta}(q_0,\ \texttt{a}) = \delta\big(\hat{\delta}(q_0,\ \varepsilon),\ \texttt{a}\big)
+$$
+
+**3단계 — 바닥에 닿았다.** 첫째 줄을 쓴다.
+
+$$
+\hat{\delta}(q_0,\ \varepsilon) = q_0
+$$
+
+**4단계 — 안에서 밖으로 되짚어 올라온다.**
+
+$$
+\begin{aligned}
+\hat{\delta}(q_0,\ \texttt{a}) &= \delta(q_0,\ \texttt{a}) = q_1 \\
+\hat{\delta}(q_0,\ \texttt{ab}) &= \delta(q_1,\ \texttt{b}) = q_2
+\end{aligned}
+$$
+
+**판정.**
+
+$$
+\hat{\delta}(q_0,\ \texttt{ab}) = q_2 \in F
+\quad\Longrightarrow\quad
+\texttt{ab} \in L(M) \ ✅
+$$
+
+**관찰.** 정의는 **뒤에서부터** 벗겼는데, 실제 계산은
+$q_0 \to q_1 \to q_2$ 로 **앞에서부터** 진행됐다.
+재귀 정의를 펼치면 언제나 이렇게 된다 —
+그래서 "정의대로 계산"과 "왼쪽부터 한 글자씩 읽기"가 같은 결과를 낸다.
+
+**만약 `ba` 였다면?** $\delta(q_0, \texttt{b})$ 가 주어지지 않았다.
+[완전성](#완전성과-죽은-상태) 때문에 형식적으로는 죽은 상태로 가고,
+거기서 나오지 못하므로 거부된다.
 
 </details>
 

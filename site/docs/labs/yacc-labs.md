@@ -10,10 +10,16 @@ description: 같은 언어를 LL과 LR로 각각 만들어 보고, flex+bison �
 
 4·5부의 내용을 손으로 돌려 보는 과제 셋.
 
+**아직 저장소를 안 받았다면 여기서부터.**
+
 ```bash
-cd examples
+git clone https://github.com/kokoa-study-room/compiler-study-site.git
+cd compiler-study-site/examples
 make && make test
 ```
+
+이미 받았다면 `examples/` 로 가면 된다.
+막히면 [실습 환경 구성](/docs/labs/setup#3-저장소-내려받기)을 보자.
 
 ---
 

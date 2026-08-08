@@ -2,6 +2,8 @@
 
 정규 문법부터 LR 파서까지, 이론과 lex/yacc 실습으로 완성하는 컴파일러 프론트엔드 교안.
 
+**→ [compiler-study.shinkeonkim.com](https://compiler-study.shinkeonkim.com)**
+
 > 고급 언어 프로그램을 기계어나 어셈블리어로 번역해 주는 소프트웨어인 컴파일러를
 > 구성하는 방법을 배우고 실습한다. 컴파일러 구현에 필요한 개념으로 정규 문법,
 > 문맥 자유 문법, Finite Automata, Pushdown Automata 등 이론적 지식을 기반으로
@@ -51,6 +53,23 @@
 ---
 
 ## 시작하기
+
+### 내려받기
+
+```bash
+git clone https://github.com/kokoa-study-room/compiler-study-site.git
+cd compiler-study-site
+```
+
+바로 확인해 보려면:
+
+```bash
+cd examples && make test
+```
+
+`모든 예제 테스트 통과` 가 나오면 준비가 끝난 것이다.
+자세한 설치 안내는 교안의
+[실습 환경 구성](https://compiler-study.shinkeonkim.com/docs/labs/setup)에 있다.
 
 ### 요구 사항
 

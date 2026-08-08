@@ -22,6 +22,13 @@ flowchart LR
 ```
 
 **디렉터리** `examples/08-mini-compiler`
+**저장소** [kokoa-study-room/compiler-study-site](https://github.com/kokoa-study-room/compiler-study-site)
+
+```bash
+git clone https://github.com/kokoa-study-room/compiler-study-site.git
+cd compiler-study-site/examples/08-mini-compiler
+make && make test
+```
 
 ---
 

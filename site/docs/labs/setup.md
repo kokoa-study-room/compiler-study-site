@@ -131,9 +131,97 @@ flex가 입력 끝(EOF)에 도달하면 `yywrap()`을 호출한다.
 
 ---
 
-## 3. 예제 저장소 구조
+## 3. 저장소 내려받기
 
-모든 실습 코드는 저장소의 `examples/` 아래에 있다.
+실습 코드는 전부 공개 저장소에 있다.
+
+> **[kokoa-study-room/compiler-study-site](https://github.com/kokoa-study-room/compiler-study-site)**
+
+```bash
+git clone https://github.com/kokoa-study-room/compiler-study-site.git
+cd compiler-study-site
+```
+
+`git` 이 없다면 [zip 으로 내려받아도](https://github.com/kokoa-study-room/compiler-study-site/archive/refs/heads/main.zip) 된다.
+실습에 git 자체가 필요하지는 않다.
+
+**받은 뒤 바로 확인해 보자.**
+
+```bash
+cd examples
+make test
+```
+
+이렇게 나오면 환경이 다 갖춰진 것이다.
+
+```
+== test 01-lex-wordcount
+  ok    basic
+  ok    empty
+  ...
+모든 예제 테스트 통과
+```
+
+:::caution[여기서 막히면 도구 설치를 다시 보자]
+| 증상 | 원인 | 할 일 |
+|---|---|---|
+| `flex: command not found` | flex 미설치 | [1절](#1-도구-설치) |
+| `bison: command not found` | bison 미설치 | [1절](#1-도구-설치) |
+| `make: *** No rule to make target` | 다른 디렉터리에 있다 | `examples/` 안인지 확인 |
+| `cc: command not found` | C 컴파일러 미설치 | macOS는 `xcode-select --install` |
+| 테스트만 `FAIL` | 도구 버전 차이 | 아래 [주의] 참고 |
+:::
+
+:::note[테스트가 실패해도 대부분은 정상이다]
+`make test` 는 출력을 **한 글자까지** 비교한다.
+flex·bison 버전이 다르면 진단 메시지의 표현이 조금 달라질 수 있다.
+
+빌드가 되고 프로그램이 돌아간다면 학습에는 지장이 없다.
+차이가 궁금하면 `diff` 결과를 그대로 읽어 보자 — 대개 오류 문구 한 줄이다.
+:::
+
+### 최신 내용 받기
+
+교안과 예제는 계속 손보고 있다. 나중에 다시 볼 때는 이렇게 갱신한다.
+
+```bash
+git pull
+cd examples && make clean && make test
+```
+
+`make clean` 을 먼저 하는 이유는, flex·bison 이 만든 `.c` 파일과 실행 파일이
+저장소에 들어 있지 않고 **빌드할 때마다 새로 생기기** 때문이다.
+옛 산출물이 남아 있으면 `make` 가 다시 만들지 않을 수 있다.
+
+### 사이트 소스도 함께 들어 있다
+
+같은 저장소의 `site/` 아래에 이 교안 자체가 들어 있다.
+문서를 고쳐 보거나 로컬에서 띄워 보고 싶다면:
+
+```bash
+cd site
+bun install
+bun start          # http://localhost:3000
+```
+
+[bun](https://bun.sh/) 이 필요하다. 실습만 할 것이라면 없어도 된다.
+
+---
+
+## 4. 예제 저장소 구조
+
+내려받은 저장소는 이렇게 생겼다.
+
+```
+compiler-study-site/
+├── examples/             # ← 실습 코드는 전부 여기
+├── site/                 # 이 교안의 소스 (Docusaurus)
+├── research/             # 최신 동향 조사 메모
+├── PROGRESS.md           # 작업 기록
+└── README.md
+```
+
+실습에서 쓰는 것은 `examples/` 하나다.
 
 ```
 examples/
@@ -164,7 +252,7 @@ examples/
 
 ---
 
-## 4. 전체 빌드와 테스트
+## 5. 전체 빌드와 테스트
 
 저장소 루트에서:
 
@@ -189,7 +277,7 @@ make test
 
 ---
 
-## 5. 도구 내부를 들여다보는 옵션
+## 6. 도구 내부를 들여다보는 옵션
 
 교안에서 이론과 도구를 대조할 때 자주 쓰게 될 옵션들이다.
 지금 외울 필요는 없고, 해당 장에서 다시 안내한다.
@@ -224,7 +312,7 @@ make test
 
 ---
 
-## 6. 편집기 설정 (선택)
+## 7. 편집기 설정 (선택)
 
 `.l`과 `.y` 파일에 문법 하이라이팅을 붙이면 훨씬 편하다.
 

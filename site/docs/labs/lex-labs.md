@@ -8,16 +8,23 @@ description: flex로 만드는 네 가지 스캐너 — wc 흉내, C 토크나�
 
 # LEX 실습
 
-2·3부에서 배운 것을 손으로 돌려 보는 과제 넷.
+2·3부에서 배운 것을 손으로 돌려 보는 과제 다섯.
 모든 코드는 저장소의 `examples/` 아래에 있고, `make test` 로 검증된다.
 
+**아직 저장소를 안 받았다면 여기서부터.**
+
 ```bash
-cd examples
+git clone https://github.com/kokoa-study-room/compiler-study-site.git
+cd compiler-study-site/examples
+```
+
+```bash
 make            # 전체 빌드
 make test       # 전체 테스트
 ```
 
-준비가 안 되었다면 [실습 환경 구성](/docs/labs/setup)을 먼저 보자.
+도구가 없어 막히면 [실습 환경 구성](/docs/labs/setup#1-도구-설치)을,
+저장소 구조가 궁금하면 [4절](/docs/labs/setup#4-예제-저장소-구조)을 보자.
 
 ---
 

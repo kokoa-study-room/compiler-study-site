@@ -6,7 +6,7 @@ import rehypeKatex from 'rehype-katex';
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
-const GITHUB_REPO = 'https://github.com/your-org/compiler-study-site';
+const GITHUB_REPO = 'https://github.com/kokoa-study-room/compiler-study-site';
 
 const config: Config = {
   title: '컴파일러 학습 노트',

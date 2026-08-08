@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "compiler-study-site",
+  "name": "compiler-study",
   "compatibility_date": "2026-08-08",
 
   // 워커 스크립트 없이 정적 자산만 올린다.
@@ -9,8 +9,13 @@
     "directory": "./build",
     // 없는 경로는 Docusaurus 가 만든 404 페이지로 보낸다.
     "not_found_handling": "404-page",
-    // /docs/intro 로 오면 /docs/intro/index.html 을 준다.
-    "html_handling": "auto-trailing-slash"
+    // Docusaurus 는 링크와 canonical 을 **슬래시 없이** 만든다
+    //   <link rel=canonical href=".../docs/intro">
+    //   <a href="/docs/intro">
+    // auto-trailing-slash 를 쓰면 /docs/intro → 307 → /docs/intro/ 로 튀어
+    // 매 접속마다 왕복이 하나 늘고 canonical 과 실제 주소가 어긋난다.
+    // drop-trailing-slash 는 /docs/intro 를 바로 200 으로 준다.
+    "html_handling": "drop-trailing-slash"
   },
 
   "observability": {

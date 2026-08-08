@@ -7,6 +7,8 @@ site/.docusaurus/
 site/.cache-loader/
 
 # Compiled example artifacts
+# 규칙: 손으로 쓴 소스(.l .y .c .h .mk Makefile)만 추적한다.
+# flex/bison 이 만든 파일과 컴파일 결과물은 `make` 로 언제든 다시 만들 수 있다.
 examples/**/build/
 examples/**/*.o
 examples/**/lex.yy.c
@@ -15,6 +17,22 @@ examples/**/y.tab.h
 examples/**/*.tab.c
 examples/**/*.tab.h
 examples/**/*.output
+examples/**/*.yy.c
+examples/**/*.yy.h
+examples/01-lex-wordcount/wordcount.c
+examples/02-lex-tokenizer/tokenizer.c
+examples/04-lex-states/states.c
+
+# 예제 실행 파일 (플랫폼 의존 — 커밋하지 않는다)
+examples/01-lex-wordcount/wordcount
+examples/02-lex-tokenizer/tokenizer
+examples/03-dfa-by-hand/dfa
+examples/04-lex-states/states
+examples/05-recursive-descent/calc
+examples/06-lr-table-driven/lrparse
+examples/07-yacc-calc/calc
+examples/08-mini-compiler/minic
+examples/09-lex-reentrant/reentrant
 
 # Misc
 .DS_Store

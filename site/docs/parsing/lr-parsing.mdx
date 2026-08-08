@@ -582,15 +582,37 @@ R &\to L
 \end{aligned}
 $$
 
-(C의 포인터 대입 `*p = q` 를 모형화한 것이다.)
+(C의 포인터 대입 `*p = q` 를 모형화한 것이다.
+$L$ 은 좌변값(**L**-value), $R$ 은 우변값(**R**-value)이라고 읽으면 된다.)
 
-상태 $I_2 = \{S \to L\cdot = R,\ R \to L\cdot\}$ 에서 `=` 를 보면
+**먼저 FOLLOW를 계산한다.** [12장의 규칙](/docs/parsing/syntax-analysis#124-follow-집합)
+그대로다.
+
+| 근거 | 얻는 것 |
+|---|---|
+| $S$ 가 시작 심볼 | `$` $\in \mathrm{FOLLOW}(S)$ |
+| $S \to L \mathbin{=} R$ 에서 $L$ 뒤에 `=` | `=` $\in \mathrm{FOLLOW}(L)$ |
+| $S \to L \mathbin{=} R$ 에서 $R$ 이 맨 끝 | $\mathrm{FOLLOW}(S) \subseteq \mathrm{FOLLOW}(R)$ |
+| $L \to *\,R$ 에서 $R$ 이 맨 끝 | $\mathrm{FOLLOW}(L) \subseteq \mathrm{FOLLOW}(R)$ |
+| $R \to L$ 에서 $L$ 이 맨 끝 | $\mathrm{FOLLOW}(R) \subseteq \mathrm{FOLLOW}(L)$ |
+
+마지막 두 줄이 서로를 먹여서 **두 집합이 같아진다.**
+
+$$
+\mathrm{FOLLOW}(L) = \mathrm{FOLLOW}(R) = \{\,\mathbf{=},\ \$\,\}
+$$
+
+여기가 문제의 근원이다. `=` 는 $L$ 의 뒤에 오는 것인데,
+$R \to L$ 이라는 규칙 하나 때문에 $R$ 에게까지 번져 버렸다.
+
+이제 상태 $I_2 = \{S \to L\cdot = R,\ R \to L\cdot\}$ 에서 `=` 를 보면
 
 - $S \to L\cdot = R$ 로 **이동** 가능
 - $R \to L\cdot$ 는 완결이고 `=` $\in \mathrm{FOLLOW}(R)$ 이므로 **축약** 가능
 
 충돌이다. 그런데 **실제로는 축약이 절대 옳지 않다.**
 $R$ 뒤에 `=` 가 오는 우측 문장 형태는 존재하지 않는다.
+`x = y` 에서 `x` 는 좌변값이지 우변값이 아니기 때문이다.
 FOLLOW가 너무 넓게 잡은 것이다.
 
 ### LR(1) 항목
@@ -612,7 +634,157 @@ $$
 
 를 추가한다. **$\beta$ 다음에 $a$ 가 온다**는 문맥을 정확히 반영한다.
 
-위 예에서 $R \to L\cdot$ 의 lookahead 는 `$` 뿐이므로 `=` 와 충돌하지 않는다.
+:::note[$\mathrm{FIRST}(\beta a)$ 를 읽는 법]
+$\beta$ 는 **점 뒤에서 $B$ 다음에 오는 것**, $a$ 는 **바깥 항목의 lookahead** 다.
+
+$B$ 를 다 전개하고 나면 그 뒤에는 $\beta$ 가 오고,
+$\beta$ 마저 없어지면($\beta \Rightarrow^* \varepsilon$) 그때는 $a$ 가 온다.
+그래서 "$\beta$ 를 먼저 보고, 안 되면 $a$" — 정확히 $\mathrm{FIRST}(\beta a)$ 다.
+
+$\beta = \varepsilon$ 이면 $\mathrm{FIRST}(a) = \{a\}$, 즉 **lookahead가 그대로 물려 내려간다.**
+:::
+
+### LR(1) CLOSURE 를 손으로 계산해 보자
+
+같은 문법에 번호를 매긴다.
+
+$$
+\begin{aligned}
+(0)\ S' &\to S &\quad (3)\ L &\to *\,R \\
+(1)\ S &\to L = R &\quad (4)\ L &\to \mathbf{id} \\
+(2)\ S &\to R &\quad (5)\ R &\to L
+\end{aligned}
+$$
+
+시작 항목 하나에서 출발한다. 항목은 `[코어, lookahead]` 로 적는다.
+
+$$
+I_0 = \mathrm{CLOSURE}(\{\,[S' \to \cdot S,\ \$]\,\})
+$$
+
+**1회차** — 점 뒤가 $S$. 규칙 (1), (2)를 넣는다.
+$\beta = \varepsilon$ 이고 바깥 lookahead 가 `$` 이므로,
+$\mathrm{FIRST}(\beta a)$ 는 `$` 그대로다.
+
+$$
+[S \to \cdot L = R,\ \$], \qquad [S \to \cdot R,\ \$]
+$$
+
+**2회차** — 새로 들어온 두 항목을 처리한다.
+
+`[S → ·L = R, $]` 는 점 뒤가 $L$ 이고 **$\beta = \mathbin{=} R$**, 바깥 lookahead 는 `$` 다.
+
+$$
+\mathrm{FIRST}(\mathbin{=} R\ \$) = \{\mathbf{=}\}
+$$
+
+$\beta$ 의 첫 심볼이 터미널 `=` 이므로 거기서 끝난다.
+**바깥 lookahead 는 쓰이지 않는다.**
+따라서 규칙 (3), (4)를 lookahead `=` 로 넣는다.
+
+$$
+[L \to \cdot *R,\ \mathbf{=}], \qquad [L \to \cdot \mathbf{id},\ \mathbf{=}]
+$$
+
+`[S → ·R, $]` 는 점 뒤가 $R$ 이고 $\beta = \varepsilon$ 이다.
+$\beta$ 가 비었으므로 바깥 lookahead 가 그대로 내려온다.
+규칙 (5)를 lookahead `$` 로 넣는다.
+
+$$
+[R \to \cdot L,\ \$]
+$$
+
+**3회차** — `[R → ·L, $]` 의 점 뒤가 $L$, $\beta = \varepsilon$ 이다.
+규칙 (3), (4)를 **이번에는 lookahead `$` 로** 넣는다.
+
+$$
+[L \to \cdot *R,\ \$], \qquad [L \to \cdot \mathbf{id},\ \$]
+$$
+
+**4회차** — 새로 넣을 것이 없다. 끝.
+
+같은 코어에 붙은 lookahead 는 하나로 묶어 적는다.
+
+:::info[$I_0$ 완성]
+| 항목 | lookahead | 들어온 경로 |
+|---|---|---|
+| $S' \to \cdot S$ | `$` | 시작 |
+| $S \to \cdot L = R$ | `$` | $S$ 전개 |
+| $S \to \cdot R$ | `$` | $S$ 전개 |
+| $R \to \cdot L$ | `$` | $S \to \cdot R$ 전개 |
+| $L \to \cdot *R$ | `=` , `$` | `=` 는 $S \to \cdot L{=}R$ 에서, `$` 는 $R \to \cdot L$ 에서 |
+| $L \to \cdot \mathbf{id}$ | `=` , `$` | 위와 같음 |
+:::
+
+**$L$ 항목이 왜 lookahead 를 두 개 갖는지**가 핵심이다.
+$L$ 이 나오는 자리가 두 군데이기 때문이다.
+
+- $S \to L \mathbin{=} R$ 의 $L$ → 뒤에 `=` 가 온다
+- $R \to L$ 의 $L$ → $R$ 뒤에 오는 것, 즉 `$` 가 온다
+
+SLR은 이 둘을 뭉쳐 $\mathrm{FOLLOW}(L)$ 하나로만 봤다.
+LR(1)은 **어느 자리에서 온 $L$ 인지**를 항목마다 따로 기억한다.
+
+### GOTO 로 정준 LR(1) 집합 만들기
+
+$\mathrm{GOTO}(I, X)$ 의 계산법은 [15.3절](#153-정준-lr0-항목-집합)과 똑같다 —
+점을 $X$ 너머로 옮기고 CLOSURE. **lookahead 는 손대지 않고 따라간다.**
+
+$\mathrm{GOTO}(I_0, L)$ 을 해 보자. $I_0$ 에서 점 뒤가 $L$ 인 항목은 둘이다.
+
+$$
+[S \to \cdot L = R,\ \$] \ \longrightarrow\ [S \to L \cdot = R,\ \$]
+$$
+$$
+[R \to \cdot L,\ \$] \ \longrightarrow\ [R \to L \cdot,\ \$]
+$$
+
+둘 다 점 뒤가 터미널이거나 완결이므로 CLOSURE가 더할 것이 없다.
+
+$$
+I_2 = \{\,[S \to L\cdot = R,\ \$],\ \ [R \to L\cdot,\ \$]\,\}
+$$
+
+**여기서 승부가 난다.** $R \to L\cdot$ 의 lookahead 가 `$` 하나뿐이다.
+`=` 가 없다. 그러므로
+
+| `=` 열 | `$` 열 |
+|---|---|
+| shift (규칙 $S \to L\cdot{=}R$) | reduce 5 (규칙 $R \to L\cdot$) |
+
+**두 액션이 서로 다른 열에 들어간다 — 충돌이 없다.**
+SLR이 `=` 열에 reduce를 밀어 넣었던 것은 FOLLOW가 뭉뚱그린 결과였을 뿐이다.
+
+나머지도 같은 방식으로 돌리면 $I_0 \sim I_{13}$, 모두 **14개** 상태가 나온다.
+
+:::info[정준 LR(1) 집합 전체]
+lookahead 가 다른 것끼리는 **다른 상태**임에 주의하자.
+
+| 상태 | 항목 (lookahead) | 어디서 왔나 |
+|---|---|---|
+| $I_0$ | 위 표 참조 | 시작 |
+| $I_1$ | $S' \to S\cdot$ `$` | $\mathrm{GOTO}(I_0, S)$ |
+| $I_2$ | $S \to L\cdot{=}R$ `$` / $R \to L\cdot$ `$` | $\mathrm{GOTO}(I_0, L)$ |
+| $I_3$ | $S \to R\cdot$ `$` | $\mathrm{GOTO}(I_0, R)$ |
+| $I_4$ | $L \to *\cdot R$ `=`,`$` / $R \to \cdot L$ `=`,`$` / $L \to \cdot *R$ `=`,`$` / $L \to \cdot\mathbf{id}$ `=`,`$` | $\mathrm{GOTO}(I_0, *)$ |
+| $I_5$ | $L \to \mathbf{id}\cdot$ `=`,`$` | $\mathrm{GOTO}(I_0, \mathbf{id})$ |
+| $I_6$ | $S \to L{=}\cdot R$ `$` / $R \to \cdot L$ `$` / $L \to \cdot *R$ `$` / $L \to \cdot\mathbf{id}$ `$` | $\mathrm{GOTO}(I_2, \mathbf{=})$ |
+| $I_7$ | $L \to *R\cdot$ `=`,`$` | $\mathrm{GOTO}(I_4, R)$ |
+| $I_8$ | $R \to L\cdot$ `=`,`$` | $\mathrm{GOTO}(I_4, L)$ |
+| $I_9$ | $S \to L{=}R\cdot$ `$` | $\mathrm{GOTO}(I_6, R)$ |
+| $I_{10}$ | $R \to L\cdot$ `$` | $\mathrm{GOTO}(I_6, L)$ |
+| $I_{11}$ | $L \to *\cdot R$ `$` / $R \to \cdot L$ `$` / $L \to \cdot *R$ `$` / $L \to \cdot\mathbf{id}$ `$` | $\mathrm{GOTO}(I_6, *)$ |
+| $I_{12}$ | $L \to \mathbf{id}\cdot$ `$` | $\mathrm{GOTO}(I_6, \mathbf{id})$ |
+| $I_{13}$ | $L \to *R\cdot$ `$` | $\mathrm{GOTO}(I_{11}, R)$ |
+:::
+
+**$I_6$ 이하가 왜 생겼는지** 보자.
+$I_6$ 은 `=` 를 이미 지나온 상태다. 대입의 **오른쪽**이므로 그 뒤에 `=` 가 또 올 일이 없다.
+그래서 $I_6$ 에서 뻗어 나간 $I_{10} \sim I_{13}$ 은 전부 lookahead 가 `$` 뿐이다.
+
+$I_4$ 계열($I_4, I_5, I_7, I_8$)과 $I_{11}$ 계열($I_{11}, I_{12}, I_{13}, I_{10}$)은
+**항목의 모양이 완전히 같고 lookahead 만 다르다.**
+LR(1)은 이 둘을 다른 상태로 센다. 여기서 상태가 불어난다.
 
 :::caution[LR(1)의 대가는 상태 수다]
 같은 코어(항목 집합의 LR(0) 부분)를 가진 상태가
@@ -632,6 +804,84 @@ $$
 \;\longrightarrow\;
 [A \to \alpha\cdot\beta,\ \{a, b\}]
 $$
+
+**코어(core)** 란 항목 집합에서 lookahead 를 떼어 낸 LR(0) 부분이다.
+
+### 실제로 병합해 보자
+
+바로 위 14개 상태에서 코어가 같은 짝을 찾는다.
+
+| 코어 | LR(1) 상태 | 각자의 lookahead | 병합 후 |
+|---|---|---|---|
+| $L \to *\cdot R,\ R \to \cdot L,\ L \to \cdot *R,\ L \to \cdot\mathbf{id}$ | $I_4$ / $I_{11}$ | `=`,`$` / `$` | **`=`,`$`** |
+| $L \to \mathbf{id}\cdot$ | $I_5$ / $I_{12}$ | `=`,`$` / `$` | **`=`,`$`** |
+| $L \to *R\cdot$ | $I_7$ / $I_{13}$ | `=`,`$` / `$` | **`=`,`$`** |
+| $R \to L\cdot$ | $I_8$ / $I_{10}$ | `=`,`$` / `$` | **`=`,`$`** |
+
+네 쌍이 합쳐지므로
+
+$$
+14 \;-\; 4 \;=\; 10 \text{ 개 상태}
+$$
+
+이고, 이 문법의 **LR(0) 상태 수가 정확히 10개**다. 약속대로 표가 늘지 않았다.
+
+**그런데 $I_2$ 는 병합되지 않는다.**
+코어 $\{S \to L\cdot{=}R,\ R \to L\cdot\}$ 를 가진 상태가 $I_2$ 하나뿐이기 때문이다.
+합칠 상대가 없으니 lookahead 는 `$` 그대로 남고,
+
+$$
+\mathrm{ACTION}[I_2,\ \mathbf{=}] = \text{shift} \quad\text{(reduce 없음)}
+$$
+
+**충돌이 사라진 채로 유지된다.** LALR이 SLR을 이기는 지점이 바로 여기다.
+
+:::tip[세 방법이 $I_2$ 를 보는 눈]
+| | $R \to L\cdot$ 를 축약할 lookahead | `=` 열 |
+|---|---|---|
+| **SLR(1)** | `FOLLOW(R) = {=, $}` | shift/reduce **충돌** ❌ |
+| **LALR(1)** | 이 상태에서 실제로 가능한 `{$}` | shift 만 ✅ |
+| **LR(1)** | 이 상태에서 실제로 가능한 `{$}` | shift 만 ✅ |
+
+LALR과 LR(1)의 답이 같다. **병합해도 손해가 없었다** — 대부분의 실제 문법이 그렇다.
+:::
+
+:::tip[bison으로 확인해 보자]
+```bash
+cat > lr.y <<'EOF'
+%token ID
+%%
+S : L '=' R | R ;
+L : '*' R | ID ;
+R : L ;
+%%
+EOF
+bison -v lr.y      # 경고 없음 = 충돌 0
+```
+
+`lr.output` 에서 코어가 $I_2$ 인 상태를 찾으면 이렇게 나온다.
+
+```
+state 4
+
+    1 S: L . '=' R
+    5 R: L .
+
+    '='  shift, and go to state 9
+
+    $default  reduce using rule 5 (R)
+```
+
+`=` 는 **shift 로만** 적혀 있다. 손으로 계산한 것과 같다.
+
+번호가 다른 것은 bison이 $I_2$ 를 4번으로 세기 때문이다.
+상태 총수도 bison은 **11개**로 보고하는데,
+증강 규칙을 $S' \to S$ 가 아니라 `$accept: S $end` 로 쓰기 때문에
+`$end` 를 이동하는 상태가 하나 더 생긴다.
+그 한 칸을 빼면 우리가 센 **10개**와 정확히 같다.
+:::
+
+정리하면
 
 - 상태 수는 **LR(0)과 같다** (표가 작다)
 - lookahead 는 SLR 보다 정확하다
@@ -799,7 +1049,7 @@ $I_2$ 가 **자기 자신으로** 가는 간선이 있다는 데 주목하자.
 
 **FOLLOW 계산**
 
-$\mathrm{FOLLOW}(S) = \{\ \texttt{)},\ \$\ \}$
+`FOLLOW(S) = { ), $ }`
 
 - $S' \to S$ 에서 → `$`
 - $S \to (S)$ 에서 $S$ 뒤에 `)` → `)`
@@ -815,7 +1065,7 @@ $\mathrm{FOLLOW}(S) = \{\ \texttt{)},\ \$\ \}$
 | 4 | | s5 | | | | |
 | 5 | | r1 | | r1 | | |
 
-- 상태 3 ($S \to a\cdot$) — 완결 항목 → $\mathrm{FOLLOW}(S) = \{),\$\}$ 열에 `r2`
+- 상태 3 ($S \to a\cdot$) — 완결 항목 → `FOLLOW(S) = {), $}` 열에 `r2`
 - 상태 5 ($S \to (S)\cdot$) — 완결 항목 → 같은 열에 `r1`
 
 **파싱 `( ( a ) )`**
@@ -935,7 +1185,7 @@ $\mathrm{ACTION}[2, +] = \text{r2}$ → **즉시 $E \to T$ 로 축약**한다.
 |---|---|---|
 | 상태 2 | **r2** (축약) | **s7** (이동) |
 
-그 칸이 그렇게 채워진 이유는 `*` 가 $\mathrm{FOLLOW}(E) = \{+, ), \$\}$ 에
+그 칸이 그렇게 채워진 이유는 `*` 가 `FOLLOW(E) = {+, ), $}` 에
 **없기** 때문이다 ([15.4절](#154-slr1-표-만들기)).
 
 **결론:** 축약 순서의 차이가 곧 **파스 트리 모양의 차이**이고,

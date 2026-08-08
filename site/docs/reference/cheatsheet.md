@@ -360,9 +360,9 @@ bison -t parser.y     # 그리고 코드에서 yydebug = 1;
 | `03-dfa-by-hand` | 표 구동 vs 직접 코딩 DFA | [5](/docs/regular/finite-automata) |
 | `04-lex-states` | 시작 조건·중첩 주석 | [9](/docs/lex/writing-lex-files) |
 | `05-recursive-descent` | 손코딩 LL(1) | [13](/docs/parsing/ll-parsing) |
-| `06-lr-table-driven` | 손코딩 표 구동 LR | [15](/docs/parsing/lr-parser-implementation) |
-| `07-yacc-calc` | flex + bison | [16](/docs/yacc/yacc-overview), [18](/docs/yacc/conflicts-and-precedence) |
-| `08-mini-compiler` | 통합 — 3-주소 코드까지 | [17](/docs/yacc/yacc-grammar-and-actions) |
+| `06-lr-table-driven` | 손코딩 표 구동 LR | [16](/docs/parsing/lr-parser-implementation) |
+| `07-yacc-calc` | flex + bison | [18](/docs/yacc/yacc-overview), [20](/docs/yacc/conflicts-and-precedence) |
+| `08-mini-compiler` | 통합 — 3-주소 코드까지 | [19](/docs/yacc/yacc-grammar-and-actions) |
 
 ```bash
 cd examples && make && make test

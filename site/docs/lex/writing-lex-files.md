@@ -590,7 +590,182 @@ flex -Cem -o small.c scanner.l  # 크기 우선 (기본값)
 
 ---
 
-## 9.10 실습 과제
+## 9.10 재진입 스캐너와 유니코드
+
+여기까지의 스캐너에는 실무에서 걸리는 제약이 둘 있다.
+**전역 변수**와 **바이트 단위 처리**다.
+
+### 전역 변수 문제
+
+지금까지 쓴 `yytext`, `yyleng`, `yylineno`, `yyin` 은 전부 **전역 변수**다.
+스캐너 인스턴스가 하나뿐이라는 뜻이다.
+
+```c
+yyin = fopen("a.c", "r");   yylex();   /* a.c 를 다 읽고 나서야 */
+yyin = fopen("b.c", "r");   yylex();   /* b.c 를 읽을 수 있다 */
+```
+
+두 파일을 **동시에** 훑거나, 스레드마다 스캐너를 하나씩 두려면 안 된다.
+
+### `%option reentrant`
+
+flex는 모든 상태를 하나의 구조체에 담아 넘기는 모드를 제공한다.
+
+```lex
+%option reentrant noyywrap
+%option prefix="cnt"
+%{
+struct counts { int words, lines; };
+#define YY_EXTRA_TYPE struct counts *
+%}
+%%
+[a-zA-Z]+   { cntget_extra(yyscanner)->words++; }
+\n          { cntget_extra(yyscanner)->lines++; }
+.           { }
+```
+
+바뀌는 것은 세 가지다.
+
+| | 기본 | `reentrant` |
+|---|---|---|
+| 스캐너 상태 | 전역 변수 | `yyscan_t` 핸들 |
+| 액션 안에서 | `yytext` | `yyget_text(yyscanner)` (또는 `yytext` — 매크로가 대신 해 준다) |
+| 호출 | `yylex()` | `yylex(yyscanner)` |
+
+액션 안에서는 `yyscanner` 라는 이름의 인자를 항상 쓸 수 있다.
+**사용자 데이터**를 붙일 자리가 `YY_EXTRA_TYPE` 이다.
+
+```c
+int main(void) {
+    yyscan_t s1, s2;
+    struct counts c1 = {0,0}, c2 = {0,0};
+
+    cntlex_init(&s1);            cntlex_init(&s2);
+    cntset_extra(&c1, s1);       cntset_extra(&c2, s2);
+    cnt_scan_string("hello world\nagain\n", s1);
+    cnt_scan_string("one two three\n", s2);
+
+    cntlex(s1);                  cntlex(s2);      /* 서로 간섭하지 않는다 */
+
+    printf("s1: %d words, %d lines\n", c1.words, c1.lines);
+    printf("s2: %d words, %d lines\n", c2.words, c2.lines);
+
+    cntlex_destroy(s1);          cntlex_destroy(s2);
+}
+```
+
+실행 결과.
+
+```
+s1: 3 words, 2 lines
+s2: 3 words, 1 lines
+```
+
+두 스캐너가 각자의 개수를 따로 셌다.
+
+:::note[`prefix` 를 함께 쓴 이유]
+`%option prefix="cnt"` 는 생성되는 모든 이름의 `yy` 를 `cnt` 로 바꾼다
+(`yylex` → `cntlex`, `yylex_init` → `cntlex_init`).
+
+**한 프로그램에 스캐너를 둘 이상 링크할 때** 필요하다.
+재진입과는 별개의 문제다 — 재진입은 *같은 스캐너의 여러 인스턴스*,
+`prefix` 는 *서로 다른 스캐너*를 위한 것이다.
+:::
+
+:::caution[bison과 함께 쓸 때]
+파서도 함께 재진입으로 만들어야 짝이 맞는다.
+
+```yacc
+%define api.pure full
+%param { yyscan_t scanner }
+```
+
+그러면 `yylex(&yylval, scanner)` 형태가 되고 `yylval` 전역도 사라진다.
+`%define` 은 bison 2.4 이상이 필요하다 —
+macOS 기본 bison 2.3에서는 옛 방식인 `%pure-parser` 를 써야 한다.
+:::
+
+### 유니코드 — flex는 바이트만 안다
+
+flex의 DFA는 **바이트 하나**를 입력으로 받는다.
+`[가-힣]` 같은 범위를 쓰면 어떻게 될까?
+
+```lex
+[가-힣]+   { printf("HANGUL[%s] len=%zu\n", yytext, yyleng); }
+[a-zA-Z]+  { printf("ASCII[%s]\n", yytext); }
+```
+
+한글만 넣으면 **되는 것처럼 보인다.**
+
+```
+$ printf '안녕 hello\n' | ./u
+HANGUL[안녕] len=6
+ASCII[hello]
+```
+
+`len=6` — 두 글자인데 6이다. 이미 신호가 와 있다.
+다른 언어를 넣어 보자.
+
+```
+$ printf 'こんにちは café 中文\n' | ./u
+HANGUL[こんにちは] len=15
+ASCII[caf]
+HANGUL[é] len=2
+HANGUL[中文] len=6
+```
+
+**일본어도, 중국어도, `café` 의 `é` 까지 "한글"로 매치됐다.**
+게다가 `café` 가 `caf` 와 `é` 로 쪼개졌다.
+
+이유는 바이트를 보면 바로 드러난다.
+
+```
+가 = EA B0 80        힣 = ED 9E A3
+```
+
+flex는 `[가-힣]` 을 **문자 범위가 아니라 바이트 나열**로 읽는다.
+
+$$
+[\ \mathtt{EA}\ \ \mathtt{B0}\ \ \mathtt{80\text{-}ED}\ \ \mathtt{9E}\ \ \mathtt{A3}\ ]
+$$
+
+가운데의 `80-ED` 가 **모든 UTF-8 다중바이트 문자의 첫 바이트**를 삼킨다.
+
+| 문자 | UTF-8 | 결과 |
+|---|---|---|
+| 안 | `EC 95 88` | 전부 `80..ED` → 매치 |
+| こ | `E3 81 93` | 전부 `80..ED` → 매치 |
+| é | `C3 A9` | 전부 `80..ED` → 매치 |
+| 中 | `E4 B8 AD` | 전부 `80..ED` → 매치 |
+
+:::danger[조용히 틀리는 종류의 버그다]
+한국어 입력만 테스트하면 **통과한다.**
+문제가 드러나는 것은 사용자가 이모지나 악센트 문자를 넣은 뒤다.
+
+`flex` 는 경고를 내지 않는다. DFA 입장에서는 완벽히 정상적인 바이트 범위이기 때문이다.
+:::
+
+### 세 가지 대안
+
+| 방법 | 어떻게 | 언제 |
+|---|---|---|
+| **바이트 패턴을 직접 쓴다** | `[\xEA-\xED][\x80-\xBF]{2}` 처럼 UTF-8 인코딩 규칙을 패턴에 넣는다 | 범위가 좁고 고정일 때 |
+| **식별자를 넓게 잡고 나중에 검사** | `[^ \t\n(){};]+` 로 뭉텅이로 받은 뒤 액션에서 유니코드 라이브러리로 판정 | 대부분의 실무 |
+| **유니코드를 아는 도구로 간다** | [RE/flex](/docs/reference/bibliography#현대-동향) 는 `\p{Han}` 같은 유니코드 속성을 지원한다 | 다국어가 1급 요구사항일 때 |
+
+:::tip[대부분의 언어는 이 문제를 피해 간다]
+C, Java, Python 모두 **식별자에 유니코드를 허용**하지만,
+어휘 분석기는 보통 위의 두 번째 방법을 쓴다.
+"공백·구두점이 아닌 것"을 통째로 모은 뒤,
+유니코드 판정은 스캐너 밖으로 미룬다.
+
+DFA를 유니코드 전체(약 15만 문자)로 확장하면 전이표가 감당이 안 되기 때문이다.
+[22장 RE/flex](/docs/modern/toolchain-map#reflex) 가 이 문제를 어떻게 푸는지 다룬다.
+:::
+
+---
+
+## 9.11 실습 과제
 
 `04-lex-states` 예제를 확장해 보자.
 
@@ -977,6 +1152,72 @@ main.c → foo.h → bar.h → (bar 끝) → foo 로 복귀 → (foo 끝) → ma
 **시작 조건 안의 catch-all은 항상 `.|\n` 이상으로,
 그리고 가능하면 `+` 로 크게 삼키도록** 쓰자.
 :::
+
+</details>
+
+10. 다음 규칙을 쓴 스캐너에 `프로그램 program 프로그램2` 를 넣으면
+    어떤 토큰이 몇 개 나오는가? 바이트 단위로 설명하라.
+
+    ```lex
+    [가-힣]+       { printf("KO\n"); }
+    [a-zA-Z][a-zA-Z0-9]*  { printf("ID\n"); }
+    [0-9]+         { printf("NUM\n"); }
+    [ \t\n]+       { }
+    ```
+
+<details>
+<summary>풀이</summary>
+
+**출력**
+
+```
+KO
+ID
+KO
+NUM
+```
+
+**왜 그런가**
+
+flex의 DFA는 **바이트 하나**를 입력으로 받는다.
+`[가-힣]` 은 문자 범위가 아니라 바이트 나열로 읽힌다.
+
+```
+가 = EA B0 80        힣 = ED 9E A3
+```
+
+따라서 이 클래스는 다음과 같이 해석된다.
+
+$$
+[\ \mathtt{EA},\ \mathtt{B0},\ \mathtt{80\text{-}ED},\ \mathtt{9E},\ \mathtt{A3}\ ]
+$$
+
+가운데 `80-ED` 가 **모든 UTF-8 다중바이트를 삼킨다.**
+
+| 입력 | 바이트 | 매치 |
+|---|---|---|
+| `프로그램` | 전부 `E1..ED` 범위 | `[가-힣]+` → **KO** (한 토큰) |
+| `program` | ASCII | `[a-zA-Z]…` → **ID** |
+| `프로그램2` | 앞 12바이트는 고바이트, `2` 는 `0x32` | `[가-힣]+` 가 **한글 부분만** 최장 일치 → **KO**, 이어서 `2` 가 **NUM** |
+
+**마지막 줄이 함정이다.** `프로그램2` 를 하나의 식별자로 받고 싶었다면
+실패한 것이다. 두 토큰으로 쪼개졌다.
+
+**어떻게 고치나**
+
+한글 식별자를 제대로 지원하려면 `[가-힣]` 을 버리고
+UTF-8 인코딩 구조를 직접 쓰거나,
+
+```lex
+HANGUL  [\xEA-\xED][\x80-\xBF]{2}
+{HANGUL}({HANGUL}|[a-zA-Z0-9])*   { printf("KO_ID\n"); }
+```
+
+식별자를 넓게 받아 액션에서 판정한다.
+근본적으로 풀려면 [RE/flex](/docs/reference/bibliography#현대-동향) 처럼
+유니코드를 아는 도구가 필요하다.
+
+**핵심:** 한국어만으로 테스트하면 이 버그는 드러나지 않는다.
 
 </details>
 

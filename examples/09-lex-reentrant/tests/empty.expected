@@ -1,0 +1,12 @@
+== 번갈아 읽기 ==
+A: WORD   [alpha]     B: NUM    [99]
+A: NUM    [12]        B: WORD   [gamma]
+A: WORD   [beta]      B: OTHER  [?]
+A: EOF    []          B: EOF    []
+
+A: words=2 nums=1 other=0
+B: words=1 nums=1 other=1
+
+== 표준 입력 ==
+C: words=0 nums=0 other=0
+C: lines=0

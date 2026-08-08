@@ -470,7 +470,7 @@ $S \to AB$ 에서 $A$, $B$ 가 **둘 다 nullable** 이므로 $S$ 도 nullable �
 $\varepsilon$ 이 $\mathrm{FIRST}(S)$ 에 들어간다.
 
 $\mathrm{FOLLOW}(A)$ : $S \to A\,B$ 에서 $\mathrm{FIRST}(B) - \{\varepsilon\} = \{b\}$,
-그리고 $B$ 가 nullable 이므로 $\mathrm{FOLLOW}(S) = \{\$\}$ 도 상속받는다.
+그리고 $B$ 가 nullable 이므로 `FOLLOW(S) = {$}` 도 상속받는다.
 
 **규칙 번호**
 
@@ -491,17 +491,17 @@ $\mathrm{FOLLOW}(A)$ : $S \to A\,B$ 에서 $\mathrm{FIRST}(B) - \{\varepsilon\} 
 | **B** | | 3 | 4 |
 
 - $S \to AB$ : $\mathrm{FIRST}(AB) = \{a, b, \varepsilon\}$ →
-  `a`, `b` 열. nullable 이므로 $\mathrm{FOLLOW}(S) = \{\$\}$ 열에도
+  `a`, `b` 열. nullable 이므로 `FOLLOW(S) = {$}` 열에도
 - $A \to a$ : `a` 열
-- $A \to \varepsilon$ : $\mathrm{FOLLOW}(A) = \{b, \$\}$ 열
+- $A \to \varepsilon$ : `FOLLOW(A) = {b, $}` 열
 - $B \to b$ : `b` 열
-- $B \to \varepsilon$ : $\mathrm{FOLLOW}(B) = \{\$\}$ 열
+- $B \to \varepsilon$ : `FOLLOW(B) = {$}` 열
 
 **충돌은 없다.** 어느 칸에도 규칙이 둘 이상 들어가지 않았다. **LL(1) 문법이다.** ✅
 
 **왜 충돌이 없는가.** $A$ 를 결정할 때 `a` 를 보면 $A \to a$,
 그 밖(`b` 나 `$`)을 보면 $A \to \varepsilon$ 이다.
-$\mathrm{FIRST}(a) = \{a\}$ 와 $\mathrm{FOLLOW}(A) = \{b, \$\}$ 가
+$\mathrm{FIRST}(a) = \{a\}$ 와 `FOLLOW(A) = {b, $}` 가
 **겹치지 않으므로** 결정할 수 있다.
 
 </details>

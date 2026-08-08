@@ -116,7 +116,7 @@ static Node *parse_term(void)
 ## 실습 6 — 표 구동 LR 파서
 
 **디렉터리** `examples/06-lr-table-driven`
-**관련 장** [15. LR 파서의 구현](/docs/parsing/lr-parser-implementation)
+**관련 장** [16. LR 파서의 구현](/docs/parsing/lr-parser-implementation)
 
 [15장에서 손으로 만든 SLR(1) 표](/docs/parsing/lr-parsing#완성된-표)를
 그대로 C 배열로 옮긴 파서다.
@@ -195,8 +195,8 @@ bison의 `syntax error, unexpected X, expecting Y or Z` 가 이것이다.
 ## 실습 7 — flex + bison 계산기
 
 **디렉터리** `examples/07-yacc-calc`
-**관련 장** [16. YACC 개요](/docs/yacc/yacc-overview),
-[18. 충돌과 우선순위](/docs/yacc/conflicts-and-precedence)
+**관련 장** [18. YACC 개요](/docs/yacc/yacc-overview),
+[20. 충돌과 우선순위](/docs/yacc/conflicts-and-precedence)
 
 두 도구를 처음으로 결합한다.
 

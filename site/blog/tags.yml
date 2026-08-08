@@ -17,3 +17,8 @@ research:
   label: 리서치
   permalink: /research
   description: 최신 동향 조사 기록
+
+tooling:
+  label: 도구·검증
+  permalink: /tooling
+  description: 빌드·lint 등 문서 품질을 지키는 장치에 관한 기록

@@ -130,14 +130,14 @@ NFA, DFA, CFG 같은 말은 각각 해당 장에서 처음부터 정의한다.
   — 이른바 "용책(Dragon Book)". 4장(구문 분석)과 3장(어휘 분석)이 이 교안의 뼈대다.
 - Hopcroft, Motwani, Ullman, ***Introduction to Automata Theory, Languages, and Computation***
   — 오토마타 이론의 정의와 증명은 이 책을 따랐다.
-- Levine, ***flex & bison*** (O'Reilly)
+- Levine, ***flex & bison*** (O'''Reilly)
   — 도구 사용법의 실무적 세부는 이 책을 참고했다.
 - [flex 매뉴얼](https://westes.github.io/flex/manual/),
   [GNU Bison 매뉴얼](https://www.gnu.org/software/bison/manual/)
   — 실제 동작은 항상 매뉴얼을 최종 근거로 삼았다.
 
-6부의 최신 동향은 별도로 조사한 논문·문서를 근거로 하며,
-출처는 [최신 경향과 연구](/docs/modern/trends) 문서에 각주로 달아 두었다.
+원논문까지 포함한 전체 목록은 [참고 문헌](/docs/reference/bibliography) 페이지에 있다.
+장별로 "더 파고 싶으면 무엇을 읽어야 하나"를 정리해 두었다.
 
 ---
 

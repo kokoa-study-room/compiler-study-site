@@ -129,7 +129,7 @@ const sidebars: SidebarsConfig = {
         description: '용어 사전과 한 장짜리 요약 시트.',
         slug: '/category/reference',
       },
-      items: ['reference/glossary', 'reference/cheatsheet'],
+      items: ['reference/glossary', 'reference/cheatsheet', 'reference/bibliography'],
     },
   ],
 

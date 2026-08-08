@@ -11,6 +11,7 @@
  *  7. 확인 문제 수 ≠ 해설 수      → 풀이가 빠진 장
  *  8. 용어 사전의 유령 항목        → 본문에 없는 말을 정의하고 있다
  *  9. 코드 스팬 안의 LaTeX 매크로  → \lvert 가 글자 그대로 찍힌다
+ * 10. 사전에 없는 새 용어        → 절을 새로 쓰고 용어 사전을 잊었다
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -195,6 +196,50 @@ for (const path of walk(DOCS)) {
       });
     }
   });
+}
+
+/* ── 10. 본문에서 정의한 용어가 사전에 없다 ────────────────
+ *
+ * `**한국어(english)**` 형태는 "여기서 이 말을 정의한다"는 표시다.
+ * 그렇게 소개한 말은 용어 사전에도 있어야 한다.
+ *
+ * 절을 새로 쓰면서 사전 갱신을 잊는 일이 세 번 반복됐다
+ * (부트스트랩, 셀프 호스팅, 후위 순회 …). 그래서 검사로 넣는다.
+ *
+ * 문장 속 번역일 뿐 용어가 아닌 것들은 아래 목록에 적어 둔다 —
+ * "이건 용어가 아니다"라는 판단을 코드에 남기는 것이 목적이다.
+ */
+const NOT_A_TERM = new Set([
+  '수확', '모호하다', '본질적으로 모호하다', '낮춘다', '추측', '닫혀 있다',
+  '병렬 탐색', '패턴', '전위', '중위', '후위', '용책', '구별 불가능한',
+  '도달 불가능', '기본', '전체', '반복',
+]);
+
+{
+  const gloss = readFileSync(join(DOCS, 'reference', 'glossary.md'), 'utf8');
+  const TERM_DEF = /\*\*([가-힣A-Za-z0-9 ·\-]{2,26})\s*\(([a-zA-Z][^)]{2,40})\)\*\*/g;
+  const reported = new Set<string>();
+
+  for (const path of walk(DOCS)) {
+    const file = relative(DOCS, path);
+    if (file.startsWith('reference/')) continue;
+    const src = readFileSync(path, 'utf8')
+      .replace(/```[\s\S]*?```/g, '')
+      .replace(/<details>[\s\S]*?<\/details>/g, '');
+
+    for (const m of src.matchAll(TERM_DEF)) {
+      const ko = m[1].trim();
+      if (NOT_A_TERM.has(ko) || reported.has(ko)) continue;
+      if (gloss.includes(ko)) continue;
+      reported.add(ko);
+      issues.push({
+        file,
+        line: src.slice(0, m.index).split('\n').length,
+        rule: `사전에 없는 용어 — "${ko}" 를 정의해 놓고 용어 사전에 넣지 않았다`,
+        text: m[0].slice(0, 60),
+      });
+    }
+  }
 }
 
 if (issues.length === 0) {

@@ -40,6 +40,7 @@ description: 교안에 나온 용어의 한국어·영어 대조와 짧은 정�
 | 문맥 의존 문법 | context-sensitive grammar | 유형 1 — 규칙이 길이를 줄이지 않는다 | [11](/docs/parsing/grammar-hierarchy#유형-1--문맥-의존-문법-context-sensitive-grammar) |
 | 선형 유계 오토마타 | linear-bounded automaton (LBA) | 유형 1에 대응하는 기계 — 테이프가 입력 길이로 제한된 튜링 기계 | [11](/docs/parsing/grammar-hierarchy#유형-1--문맥-의존-문법-context-sensitive-grammar) |
 | 본질적 모호성 | inherent ambiguity | 어떤 문법으로도 모호성을 없앨 수 없는 언어의 성질 | [2](/docs/foundations/language-and-grammar#본질적-모호성) |
+| 소속 판정 문제 | membership problem | "이 스트링이 이 언어의 원소인가"를 묻는 문제. 파싱이 곧 이 문제를 푸는 일이다 | [2](/docs/foundations/language-and-grammar#언어) |
 | 멱집합 | power set | $2^A$ — $A$ 의 부분집합 전부를 모은 집합. NFA 전이 함수의 공역 | [5](/docs/regular/finite-automata#52-비결정적-유한-오토마타-nfa) |
 
 ---
@@ -75,6 +76,20 @@ description: 교안에 나온 용어의 한국어·영어 대조와 짧은 정�
 
 ---
 
+## 컴파일러의 구조
+
+| 한국어 | 영어 | 뜻 | 장 |
+|---|---|---|---|
+| 인터프리터 | interpreter | 번역 결과를 남기지 않고 **읽으면서 바로 실행**하는 방식 | [1](/docs/foundations/compiler-overview#인터프리터와의-차이) |
+| 단계 | phase | 컴파일러의 **논리적** 구분 (어휘 분석, 구문 분석 …) | [1](/docs/foundations/compiler-overview#패스pass와-단계phase) |
+| 패스 | pass | 입력을 처음부터 끝까지 **실제로 훑는 횟수** | [1](/docs/foundations/compiler-overview#패스pass와-단계phase) |
+| 부트스트랩 | bootstrapping | 컴파일러를 자기 자신으로 컴파일할 수 있게 되기까지의 과정 | [1](/docs/foundations/compiler-overview#15-컴파일러는-무엇으로-만드나--부트스트랩) |
+| 셀프 호스팅 | self-hosting | 그 언어로 쓰인 컴파일러가 그 언어를 컴파일하는 상태 | [1](/docs/foundations/compiler-overview#크로스-컴파일--그-기계에서-돌릴-수-없을-때) |
+| 재현 가능한 빌드 | reproducible build | 같은 소스에서 항상 같은 바이너리가 나오게 하는 것 | [1](/docs/foundations/compiler-overview#크로스-컴파일--그-기계에서-돌릴-수-없을-때) |
+| 크로스 컴파일러 | cross compiler | 지금 도는 기계와 **다른 기계**의 코드를 뱉는 컴파일러 | [1](/docs/foundations/compiler-overview#11-컴파일러란-무엇인가) |
+
+---
+
 ## 어휘 분석
 
 | 한국어 | 영어 | 뜻 | 장 |
@@ -90,6 +105,7 @@ description: 교안에 나온 용어의 한국어·영어 대조와 짧은 정�
 | 보초 | sentinel | 버퍼 끝에 두는 표식 문자 — 경계 검사를 한 번으로 줄인다 | [8](/docs/lex/lex-input-and-parsing#보초-기법-sentinel) |
 | 시작 조건 | start condition | 스캐너의 모드 (`%x`) | [9](/docs/lex/writing-lex-files#92-시작-조건) |
 | 기본 규칙 | default rule | 매치 안 되면 그대로 출력 | [7](/docs/lex/lex-overview#72-lex-입력-파일의-구조) |
+| 정의부 | definition section | lex 입력 파일의 첫 부분. `%option`, C 블록, 정규 정의가 들어간다 | [7](/docs/lex/lex-overview#72-lex-입력-파일의-구조) |
 | 동등 클래스 | equivalence class | 전이가 같은 문자들을 한 열로 묶어 표를 줄이는 flex 기법 | [9](/docs/lex/writing-lex-files#99-성능-관련-옵션) |
 
 ---
@@ -105,11 +121,12 @@ description: 교안에 나온 용어의 한국어·영어 대조와 짧은 정�
 | 좌재귀 | left recursion | $A \to A\alpha$ | [10](/docs/parsing/context-free-grammar#좌재귀-제거) |
 | 좌인수분해 | left factoring | 공통 접두사 뽑아내기 | [10](/docs/parsing/context-free-grammar#좌인수분해) |
 | 쓸모없는 심볼 | useless symbol | 도달할 수 없거나(unreachable) 터미널 열을 못 만드는(non-generating) 심볼 | [10](/docs/parsing/context-free-grammar#쓸모없는-심볼-제거) |
+| 비생성적 | non-productive | 어떤 터미널 열도 만들어 내지 못하는 넌터미널 | [10](/docs/parsing/context-free-grammar#쓸모없는-심볼-제거) |
 | Chomsky 표준형 | Chomsky normal form (CNF) | 모든 규칙이 $A \to BC$ 또는 $A \to a$ — CYK 알고리즘의 전제 | [10](/docs/parsing/context-free-grammar#정규형-참고) |
 | Greibach 표준형 | Greibach normal form (GNF) | 모든 규칙이 $A \to a\alpha$ — 좌재귀가 원천적으로 없다 | [10](/docs/parsing/context-free-grammar#정규형-참고) |
 | 하향식 | top-down | 시작 심볼에서 아래로 전개해 내려간다 (LL) | [12](/docs/parsing/syntax-analysis#121-두-가지-전략) |
 | 상향식 | bottom-up | 토큰에서 위로 축약해 올라간다 (LR) | [12](/docs/parsing/syntax-analysis#121-두-가지-전략) |
-| AST | abstract syntax tree | 의미에 필요한 것만 남긴 트리 | [12](/docs/parsing/syntax-analysis#파스-트리-vs-ast) |
+| 추상 구문 트리 | AST, abstract syntax tree | 의미에 필요한 것만 남긴 트리 | [12](/docs/parsing/syntax-analysis#파스-트리-vs-ast) |
 | CST | concrete syntax tree | 문법의 모든 세부를 담은 트리 | [12](/docs/parsing/syntax-analysis#파스-트리-vs-ast) |
 | FIRST | FIRST set | 첫 터미널이 될 수 있는 것들 | [12](/docs/parsing/syntax-analysis#123-first-집합) |
 | FOLLOW | FOLLOW set | 바로 뒤에 올 수 있는 터미널들 | [12](/docs/parsing/syntax-analysis#124-follow-집합) |
@@ -142,6 +159,8 @@ description: 교안에 나온 용어의 한국어·영어 대조와 짧은 정�
 | 패닉 모드 | panic mode | 동기화 토큰까지 버리는 오류 복구 | [12](/docs/parsing/syntax-analysis#126-구문-오류-처리) |
 | 오류 생성 규칙 | error production | 흔한 오류를 아예 문법 규칙으로 넣어 진단을 내는 기법 | [12](/docs/parsing/syntax-analysis#오류-복구-전략) |
 | 구문 수준 복구 | phrase-level recovery | 토큰을 삽입·삭제·교체해 국소적으로 고치는 복구 | [12](/docs/parsing/syntax-analysis#오류-복구-전략) |
+| 복구 표현식 | recovery expression | PEG 에서 실패 지점마다 붙여 두는 대체 규칙. 오류 복구를 문법에 명시한다 | [21](/docs/modern/trends#peg의-약점과-최근-연구) |
+| 연쇄 오류 | cascading errors | 오류 하나가 뒤따르는 가짜 오류를 줄줄이 만들어 내는 현상 | [12](/docs/parsing/syntax-analysis#126-구문-오류-처리) |
 
 ---
 
@@ -158,6 +177,8 @@ description: 교안에 나온 용어의 한국어·영어 대조와 짧은 정�
 | 의미 규칙 | semantic rule | 속성값을 정하는 식 $A.a := f(\dots)$ | [17](/docs/parsing/syntax-directed-translation#173-sdd와-주석-달린-파스-트리) |
 | 주석 달린 파스 트리 | annotated parse tree | 각 노드에 속성값을 적어 넣은 파스 트리 | [17](/docs/parsing/syntax-directed-translation#173-sdd와-주석-달린-파스-트리) |
 | 의존 그래프 | dependency graph | 속성 사이의 계산 선후를 나타내는 방향 그래프. 위상 정렬이 계산 순서 | [17](/docs/parsing/syntax-directed-translation#174-의존-그래프) |
+| 후위 순회 | postorder traversal | 자식을 모두 방문한 뒤 부모를 방문. **LR 파서의 액션 실행 순서**와 같다 | [시작](/docs/prerequisites#순회-순서--이건-꼭-알아야-한다) |
+| 공용체 | union | C의 `union` — 한 자리에 여러 타입 중 하나를 담는다. yacc의 `%union` | [16](/docs/parsing/lr-parser-implementation#타입이-여럿일-때) |
 | S-속성 문법 | S-attributed grammar | 합성 속성만 쓰는 SDD — **LR 파싱 중에 그대로 계산된다** | [17](/docs/parsing/syntax-directed-translation#s-속성-문법) |
 | L-속성 문법 | L-attributed grammar | 왼쪽에서 오는 상속 속성까지 허용 — LL(재귀 하강)에 자연스럽다 | [17](/docs/parsing/syntax-directed-translation#l-속성-문법) |
 | 중간 액션 | mid-rule action | 규칙 중간에 놓인 `{ … }` — 빈 넌터미널로 바뀌어 충돌을 만들 수 있다 | [18](/docs/yacc/yacc-overview#중간-액션) |
@@ -206,6 +227,7 @@ description: 교안에 나온 용어의 한국어·영어 대조와 짧은 정�
 | LL의 좌재귀 | **금지** (무한 루프) |
 | LR의 좌재귀 | **권장** (스택이 안 자란다) |
 | 토큰 vs 렉심 | 종류(`ID`) / 실제 문자열(`count`) |
+| 스트링 vs 문자열 | 이론의 형식적 대상 / 프로그램 안의 실제 데이터 |
 | 파스 트리 vs AST | 모든 세부 / 의미만 |
 | shift/reduce vs reduce/reduce | 대개 괜찮다 / 거의 항상 버그 |
 | 정규 표현 vs 정규식(regex) | 형식 이론 / 역참조 등 확장 포함 |

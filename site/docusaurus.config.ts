@@ -48,6 +48,9 @@ const config: Config = {
     format: 'detect',
   },
 
+  // 인쇄 직전에 접이식 풀이를 전부 펼친다 (그러지 않으면 종이에 풀이가 안 나온다)
+  clientModules: [require.resolve('./src/clientModules/printSetup.ts')],
+
   themes: [
     '@docusaurus/theme-mermaid',
     // 오프라인 전문 검색. 22장 · 9만 낱말이라 검색 없이는 찾아 들어가기 어렵다.

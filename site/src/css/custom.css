@@ -107,3 +107,124 @@
 .theme-admonition pre {
   margin-bottom: 0.6rem;
 }
+
+/* ══ 인쇄 ══════════════════════════════════════════════════
+ *
+ * 교안을 종이로 보는 경우를 위한 규칙.
+ * 가장 중요한 것은 **접이식 풀이가 펼쳐진 채로 인쇄되게** 하는 것이다.
+ * `<details>` 는 닫혀 있으면 `<summary>` 만 인쇄되므로,
+ * 그대로 두면 확인 문제 125개의 풀이가 통째로 빠진다.
+ */
+@media print {
+  /* 화면 전용 요소 제거 */
+  .navbar,
+  .theme-doc-sidebar-container,
+  .theme-doc-toc-desktop,
+  .theme-doc-toc-mobile,
+  .theme-doc-breadcrumbs,
+  .pagination-nav,
+  .theme-edit-this-page,
+  .theme-last-updated,
+  .footer,
+  .tocCollapsible_ETCw,
+  [class*='backToTopButton'],
+  [class*='tableOfContents'] {
+    display: none !important;
+  }
+
+  .main-wrapper,
+  .docItemCol_VOVn,
+  [class*='docItemCol'],
+  [class*='docMainContainer'] {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* 접이식 풀이를 전부 펼친다 */
+  details {
+    display: block !important;
+  }
+
+  details > summary {
+    list-style: none;
+    font-weight: 700;
+  }
+
+  details > summary::marker,
+  details > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  details > *:not(summary) {
+    display: revert !important;
+  }
+
+  /* 시뮬레이터는 눌러 볼 수 없으므로 조작 버튼만 감춘다.
+     현재 단계까지의 추적표는 그대로 남는다. */
+  [class*='controls'] button,
+  [class*='inputRow'] {
+    display: none !important;
+  }
+
+  /* 넘침 방지 — 화면에서는 가로 스크롤이지만 종이에는 스크롤이 없다 */
+  pre,
+  table,
+  .katex-display,
+  .docusaurus-mermaid-container,
+  [class*='tableWrap'] {
+    overflow: visible !important;
+    max-width: 100% !important;
+  }
+
+  pre,
+  code {
+    white-space: pre-wrap !important;
+    word-break: break-word;
+  }
+
+  /* 표와 코드가 페이지 경계에서 잘리지 않게 */
+  pre,
+  table,
+  .theme-admonition,
+  details {
+    break-inside: avoid;
+  }
+
+  h2,
+  h3 {
+    break-after: avoid;
+  }
+
+  h1,
+  h2 {
+    break-before: auto;
+  }
+
+  /* 링크 주소를 각주처럼 보여 준다 (사이트 내부 링크는 제외) */
+  a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-size: 0.75em;
+    color: #555;
+    word-break: break-all;
+  }
+
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 10.5pt;
+  }
+}
+
+/* 동작 최소화를 원하는 사용자에게는 전환 효과를 끈다 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

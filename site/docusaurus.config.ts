@@ -79,6 +79,9 @@ const config: Config = {
     [
       'classic',
       {
+        googleTagManager: {
+          containerId: "GTM-KF7296CH",
+        },
         docs: {
           sidebarPath: './sidebars.ts',
           routeBasePath: 'docs',
